@@ -28,7 +28,7 @@ setup(
     version=version,
     keywords="",
     package_dir={"": "src"},
-    packages=["dt_docker_utils"],
+    packages=["duckietown_docker_utils"],
     install_requires=install_requires,
     entry_points={
         "console_scripts": [
