@@ -17,14 +17,14 @@ def get_version(filename: str):
     return version
 
 
-version = get_version(filename="src/dt_docker_utils/__init__.py")
+version = get_version(filename="src/duckietown_docker_utils/__init__.py")
 
 install_requires = (["requirements-parser", "zuper-commons-z6", "packaging", "pytz", "whichcraft"],)
 
 line = "daffy"
 
 setup(
-    name=f"dt-docker-utils-{line}",
+    name=f"duckietown-docker-utils-{line}",
     version=version,
     keywords="",
     package_dir={"": "src"},
@@ -32,7 +32,7 @@ setup(
     install_requires=install_requires,
     entry_points={
         "console_scripts": [
-             
+
         ],
     },
 )
