@@ -6,10 +6,12 @@ bump: # v2
 	git push --tags
 	git push
 
+package=duckietown-docker-utils-daffy
+
 upload: # v3
 	aido-check-not-dirty
 	aido-check-tagged
-	aido-check-need-upload --package duckietown-docker-utils-daffy make upload-do
+	aido-check-need-upload --package $(package) make upload-do
 
 upload-do:
 	rm -f dist/*
