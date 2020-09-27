@@ -8,6 +8,8 @@ from dataclasses import dataclass
 from tempfile import TemporaryDirectory
 from typing import Dict, List, Optional
 
+from zuper_commons.types import ZValueError
+
 from . import logger
 from .constants import CONFIG_DOCKER_PASSWORD, CONFIG_DOCKER_USERNAME, DT1_TOKEN_CONFIG_KEY, IMPORTANT_ENVS
 from .monitoring import continuously_monitor
@@ -38,7 +40,7 @@ def generic_docker_run(client, as_root: bool, image: str, development: bool,
                        container_name: str,
                        logname: str) -> GenericDockerRunOutput:
     image = replace_important_env_vars(image)
-    logger.info(f'using image {image}')
+    logger.debug(f'using image {image}')
     pwd = os.getcwd()
 
     pwd1 = os.path.realpath(pwd)

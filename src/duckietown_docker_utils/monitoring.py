@@ -11,10 +11,11 @@ from . import logger
 # Everything after this point needs to be checked
 
 
+from docker.errors import NotFound, APIError
+
 def continuously_monitor(client, container_name: str, log: str = None):
     if log is None:
         log = f'{container_name}.log'
-    from docker.errors import NotFound, APIError
 
     logger.debug(f"Monitoring container {container_name}; logs at {log}")
     last_log_timestamp = None
