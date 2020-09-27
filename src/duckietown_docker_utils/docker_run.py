@@ -8,6 +8,7 @@ from dataclasses import dataclass
 from tempfile import TemporaryDirectory
 from typing import Dict, List, Optional
 
+from docker.errors import NotFound
 from zuper_commons.types import ZValueError
 
 from . import logger
@@ -30,17 +31,23 @@ class GenericDockerRunOutput:
     message: str
 
 
-def generic_docker_run(client, as_root: bool, image: str, development: bool,
-                       pull: bool,
-                       docker_username: Optional[str],
-                       docker_secret: Optional[str],
-                       commands: List[str],
-                       shell: bool, entrypoint: Optional[str],
-                       dt1_token: Optional[str],
-                       container_name: str,
-                       logname: str) -> GenericDockerRunOutput:
+def generic_docker_run(
+    client,
+    as_root: bool,
+    image: str,
+    development: bool,
+    pull: bool,
+    docker_username: Optional[str],
+    docker_secret: Optional[str],
+    commands: List[str],
+    shell: bool,
+    entrypoint: Optional[str],
+    dt1_token: Optional[str],
+    container_name: str,
+    logname: str,
+) -> GenericDockerRunOutput:
     image = replace_important_env_vars(image)
-    logger.debug(f'using image {image}')
+    logger.debug(f"using image {image}")
     pwd = os.getcwd()
 
     pwd1 = os.path.realpath(pwd)
@@ -54,40 +61,40 @@ def generic_docker_run(client, as_root: bool, image: str, development: bool,
     contents = {
         CONFIG_DOCKER_USERNAME: docker_username,
         CONFIG_DOCKER_PASSWORD: docker_secret,
-        DT1_TOKEN_CONFIG_KEY: dt1_token
+        DT1_TOKEN_CONFIG_KEY: dt1_token,
     }
-    FAKE_HOME_GUEST = '/home'
+    FAKE_HOME_GUEST = "/home"
     with TemporaryDirectory() as tmpdir:
-        fake_home_host = os.path.join(tmpdir, 'fake-home')
-        credentials = os.path.join(tmpdir, 'credentials')
-        with open(credentials, 'w') as f:
+        fake_home_host = os.path.join(tmpdir, "fake-home")
+        credentials = os.path.join(tmpdir, "credentials")
+        with open(credentials, "w") as f:
             f.write(json.dumps(contents))
-        guest_credentials = '/credentials'
+        guest_credentials = "/credentials"
         volumes2[credentials] = {"bind": guest_credentials, "mode": "ro"}
 
         uid1 = os.getuid()
 
-        if sys.platform == 'darwin':
-            flag = ':delegated'
+        if sys.platform == "darwin":
+            flag = ":delegated"
         else:
-            flag = ''
+            flag = ""
 
         if as_root:
             pass
         else:
-            envs['USER'] = user
-            envs['USERID'] = uid1
+            envs["USER"] = user
+            envs["USERID"] = uid1
 
             # home = os.path.expanduser("~")
 
             volumes2[fake_home_host] = {"bind": FAKE_HOME_GUEST, "mode": "rw"}
-            envs['HOME'] = FAKE_HOME_GUEST
+            envs["HOME"] = FAKE_HOME_GUEST
 
-        PWD = '/pwd'
+        PWD = "/pwd"
         # volumes[f'{fake_home}/.docker'] = f'{home}/.docker', False
         volumes2[pwd1] = {"bind": PWD, "mode": "ro"}
-        volumes2[f'/var/run/docker.sock'] = {"bind": '/var/run/docker.sock', "mode": "rw"}
-        volumes2['/tmp'] = {"bind": '/tmp', "mode": "rw"}
+        volumes2[f"/var/run/docker.sock"] = {"bind": "/var/run/docker.sock", "mode": "rw"}
+        volumes2["/tmp"] = {"bind": "/tmp", "mode": "rw"}
         if development:
             dev_volumes = get_developer_volumes()
             volumes2.update(dev_volumes)
@@ -129,7 +136,7 @@ def generic_docker_run(client, as_root: bool, image: str, development: bool,
 
         params = dict(
             working_dir=PWD,
-            user=f'{uid1}',
+            user=f"{uid1}",
             group_add=group_add,
             command=commands,
             entrypoint=entrypoint,
@@ -142,68 +149,73 @@ def generic_docker_run(client, as_root: bool, image: str, development: bool,
         )
         logger.info("Parameters:\n%s" % json.dumps(params, indent=4))
         if detach:
-            params['remove'] = False
+            params["remove"] = False
             container = client.containers.run(image, **params)
 
             continuously_monitor(client, container_name, log=logname)
-            logger.info(f'status: {container.status}')
-            res = container.wait()
-            #  {'Error': None, 'StatusCode': 32
-            StatusCode = res['StatusCode']
-            Error = res['Error']
+            # logger.info(f'status: {container.status}')
+            try:
+                res = container.wait()
+            except NotFound:
+                message = "Interrupted"
+                return GenericDockerRunOutput(retcode=0, message=message)
+                # not found; for example, CTRL-C
 
-            logger.info(f'StatusCode: {StatusCode} Error: {Error}')
+            #  {'Error': None, 'StatusCode': 32
+            StatusCode = res["StatusCode"]
+            Error = res["Error"]
+
+            logger.info(f"StatusCode: {StatusCode} Error: {Error}")
             if Error is None:
-                Error = f'Container exited with code {StatusCode}'
+                Error = f"Container exited with code {StatusCode}"
             return GenericDockerRunOutput(retcode=StatusCode, message=Error)
 
-
         else:
-            params['remove'] = True
+            params["remove"] = True
             client.containers.run(image, **params)
-            return GenericDockerRunOutput(0, '')
+            return GenericDockerRunOutput(0, "")
 
 
 def get_developer_volumes() -> Dict[str, dict]:
-    V = 'DT_ENV_DEVELOPER'
+    V = "DT_ENV_DEVELOPER"
     val = os.environ.get(V, None)
     if not val:
         return {}
 
-    prefix1 = '/usr/local/lib/python3.8/dist-packages/'
+    prefix1 = "/usr/local/lib/python3.8/dist-packages/"
 
     wda = [
-        (f'{val}/src/duckietown-world/src', ['duckietown_world']),
-        (f'{val}/src/duckietown-challenges/src', ['duckietown_challenges']),
-        (f'{val}/src/duckietown-challenges-cli/src', ['duckietown_challenges_cli']),
-        (f'{val}/src/duckietown-challenges-runner/src', ['duckietown_challenges_runner']),
-        (f'{val}/src/duckietown-docker-utils/src', ['duckietown_docker_utils']),
-        (f'{val}/src/duckietown-world/src', ['duckietown_world']),
-        (f'{val}/src/duckietown-shell/src', ['dt_shell']),
-        (f'{val}/src/duckietown-tokens/src', ['duckietown_tokens']),
-        (f'{val}/src/gym-duckietown/src', ['gym_duckietown']),
-        (f'{val}/src/aido-agents/src', ['aido_agents']),
-        (f'{val}/src/aido-analyze/src', ['aido_analyze']),
-        (f'{val}/src/aido-protocols/src', ['aido_schemas']),
-        (f'{val}/src/aido-utils/src', ['aido_utils']),
+        (f"{val}/src/duckietown-world/src", ["duckietown_world"]),
+        (f"{val}/src/duckietown-challenges/src", ["duckietown_challenges"]),
+        (f"{val}/src/duckietown-challenges-cli/src", ["duckietown_challenges_cli"]),
+        (f"{val}/src/duckietown-challenges-runner/src", ["duckietown_challenges_runner"]),
+        (f"{val}/src/duckietown-docker-utils/src", ["duckietown_docker_utils"]),
+        (f"{val}/src/duckietown-world/src", ["duckietown_world"]),
+        (f"{val}/src/duckietown-shell/src", ["dt_shell"]),
+        (f"{val}/src/duckietown-tokens/src", ["duckietown_tokens"]),
+        (f"{val}/src/gym-duckietown/src", ["gym_duckietown"]),
+        (f"{val}/src/aido-agents/src", ["aido_agents"]),
+        (f"{val}/src/aido-analyze/src", ["aido_analyze"]),
+        (f"{val}/src/aido-protocols/src", ["aido_schemas"]),
+        (f"{val}/src/aido-utils/src", ["aido_utils"]),
     ]
 
     res = {}
     for local, inside_packages in wda:
         local = os.path.join(val, local)
         exists = os.path.exists(local)
-        logger.info(f'{exists} {local}')
+        logger.info(f"{exists} {local}")
         if exists:
             for pn in inside_packages:
                 d = os.path.join(local, pn)
                 if not os.path.exists(d):
-                    msg = f'Expect {d}'
+                    msg = f"Expect {d}"
 
                     raise ZValueError(msg)
 
                 t1 = os.path.join(prefix1, pn)
                 # t2 = os.path.join(prefix2, pn)
-                res[d] = {'bind': t1, 'mode': 'ro'}
+                res[d] = {"bind": t1, "mode": "ro"}
                 # res[d] =  {'bind': t2, 'mode': 'ro'}
 
     return res
