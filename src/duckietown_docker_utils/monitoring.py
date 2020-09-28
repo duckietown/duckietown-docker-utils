@@ -3,19 +3,21 @@ import sys
 import time
 import traceback
 
-from zuper_commons.text import remove_escapes
+from docker.errors import APIError, NotFound
 
 from . import logger
+import re
+
+escape = re.compile("\x1b\[[\d;]*?m")
 
 
-# Everything after this point needs to be checked
+def remove_escapes(s):
+    return escape.sub("", s)
 
-
-from docker.errors import NotFound, APIError
 
 def continuously_monitor(client, container_name: str, log: str = None):
     if log is None:
-        log = f'{container_name}.log'
+        log = f"{container_name}.log"
 
     logger.debug(f"Monitoring container {container_name}; logs at {log}")
     last_log_timestamp = None
