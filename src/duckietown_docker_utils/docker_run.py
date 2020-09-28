@@ -66,7 +66,9 @@ def generic_docker_run(
     FAKE_HOME_GUEST = "/home"
     with TemporaryDirectory() as tmpdir:
         fake_home_host = os.path.join(tmpdir, "fake-home")
+        os.makedirs(fake_home_host)
         credentials = os.path.join(tmpdir, "credentials")
+        os.makedirs(credentials)
         with open(credentials, "w") as f:
             f.write(json.dumps(contents))
         guest_credentials = "/credentials"
