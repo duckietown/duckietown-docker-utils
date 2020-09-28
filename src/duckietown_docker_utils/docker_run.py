@@ -9,8 +9,6 @@ from tempfile import TemporaryDirectory
 from typing import Dict, List, Optional
 
 from docker.errors import NotFound
-from zuper_commons.types import ZValueError
-
 from . import logger
 from .constants import CONFIG_DOCKER_PASSWORD, CONFIG_DOCKER_USERNAME, DT1_TOKEN_CONFIG_KEY, IMPORTANT_ENVS
 from .monitoring import continuously_monitor
@@ -213,7 +211,7 @@ def get_developer_volumes() -> Dict[str, dict]:
                 if not os.path.exists(d):
                     msg = f"Expect {d}"
 
-                    raise ZValueError(msg)
+                    raise ValueError(msg)
 
                 t1 = os.path.join(prefix1, pn)
                 # t2 = os.path.join(prefix2, pn)
