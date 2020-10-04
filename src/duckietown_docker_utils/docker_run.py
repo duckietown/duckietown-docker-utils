@@ -9,6 +9,7 @@ from tempfile import TemporaryDirectory
 from typing import Dict, List, Optional
 
 from docker.errors import NotFound
+
 from . import logger
 from .constants import CONFIG_DOCKER_PASSWORD, CONFIG_DOCKER_USERNAME, DT1_TOKEN_CONFIG_KEY, IMPORTANT_ENVS
 from .monitoring import continuously_monitor
@@ -45,7 +46,8 @@ def generic_docker_run(
     logname: str,
 ) -> GenericDockerRunOutput:
     image = replace_important_env_vars(image)
-    logger.debug(f"using image {image}")
+    logger.debug(f"using image: {image}")
+    logger.debug(f"development: {development}")
     pwd = os.getcwd()
 
     pwd1 = os.path.realpath(pwd)
@@ -97,6 +99,8 @@ def generic_docker_run(
         volumes2["/tmp"] = {"bind": "/tmp", "mode": "rw"}
         if development:
             dev_volumes = get_developer_volumes()
+            if not dev_volumes:
+                logger.warning("development active but no mounts found")
             volumes2.update(dev_volumes)
 
         name, _, tag = image.rpartition(":")
@@ -176,47 +180,37 @@ def generic_docker_run(
             return GenericDockerRunOutput(0, "")
 
 
-def get_developer_volumes() -> Dict[str, dict]:
-    V = "DT_ENV_DEVELOPER"
-    val = os.environ.get(V, None)
-    if not val:
-        return {}
+def get_developer_volumes(dirname: str = None) -> Dict[str, dict]:
+    if dirname is None:
+        V = "DT_ENV_DEVELOPER"
+        dirname = os.environ.get(V, None)
+        if not dirname:
+            logger.debug(f"Did not find {V} - not mounting inside")
+            return {}
 
-    prefix1 = "/usr/local/lib/python3.8/dist-packages/"
-
-    wda = [
-        (f"{val}/src/duckietown-world/src", ["duckietown_world"]),
-        (f"{val}/src/duckietown-challenges/src", ["duckietown_challenges"]),
-        (f"{val}/src/duckietown-challenges-cli/src", ["duckietown_challenges_cli"]),
-        (f"{val}/src/duckietown-challenges-runner/src", ["duckietown_challenges_runner"]),
-        (f"{val}/src/duckietown-docker-utils/src", ["duckietown_docker_utils"]),
-        (f"{val}/src/duckietown-world/src", ["duckietown_world"]),
-        (f"{val}/src/duckietown-shell/src", ["dt_shell"]),
-        (f"{val}/src/duckietown-tokens/src", ["duckietown_tokens"]),
-        (f"{val}/src/gym-duckietown/src", ["gym_duckietown"]),
-        (f"{val}/src/aido-agents/src", ["aido_agents"]),
-        (f"{val}/src/aido-analyze/src", ["aido_analyze"]),
-        (f"{val}/src/aido-protocols/src", ["aido_schemas"]),
-        (f"{val}/src/aido-utils/src", ["aido_utils"]),
-    ]
+    import yaml
+    import glob
 
     res = {}
-    for local, inside_packages in wda:
-        local = os.path.join(val, local)
-        exists = os.path.exists(local)
-        logger.info(f"{exists} {local}")
-        if exists:
-            for pn in inside_packages:
-                d = os.path.join(local, pn)
-                if not os.path.exists(d):
-                    msg = f"Expect {d}"
+    files = list(glob.glob(os.path.join(dirname, "*.mount.yaml")))
+    if not files:
+        logger.warning(f"Did not find any mount.yaml files.")
+        return {}
+    for name in files:
+        with open(name) as f:
+            data = f.read()
+        contents = yaml.load(data, Loader=yaml.Loader)
+        # assume list
+        for entry in contents:
+            host = entry["host"]
+            guest = entry["guest"]
+            host = os.path.expandvars(host)
 
-                    raise ValueError(msg)
-
-                t1 = os.path.join(prefix1, pn)
-                # t2 = os.path.join(prefix2, pn)
-                res[d] = {"bind": t1, "mode": "ro"}
-                # res[d] =  {'bind': t2, 'mode': 'ro'}
+            # local = os.path.join(val, local)
+            exists = os.path.exists(host)
+            logger.info(f"{exists} {host} -> {guest}")
+            if exists:
+                res[host] = {"bind": guest, "mode": "ro"}
 
     return res
 
@@ -228,3 +222,10 @@ def get_args_for_env(envs: Dict[str, str]) -> List[str]:
         args.append(f"{k}={v}")
 
     return args
+
+
+if __name__ == "__main__":
+    envs = get_developer_volumes()
+
+    volumes = [f'{k}:{v["bind"]}:{v["mode"]}' for k, v in envs.items()]
+    print("\n- ".join(volumes))
