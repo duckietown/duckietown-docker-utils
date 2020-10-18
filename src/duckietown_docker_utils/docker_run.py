@@ -4,11 +4,14 @@ import json
 import os
 import platform
 import sys
+import traceback
 from dataclasses import dataclass
 from tempfile import TemporaryDirectory
 from typing import Dict, List, Optional
 
+from docker import DockerClient
 from docker.errors import NotFound
+from docker.models.containers import Container
 
 from . import logger
 from .constants import CONFIG_DOCKER_PASSWORD, CONFIG_DOCKER_USERNAME, DT1_TOKEN_CONFIG_KEY, IMPORTANT_ENVS
@@ -31,7 +34,7 @@ class GenericDockerRunOutput:
 
 
 def generic_docker_run(
-    client,
+    client: DockerClient,
     as_root: bool,
     image: str,
     development: bool,
@@ -116,12 +119,12 @@ def generic_docker_run(
         except:
             pass
         else:
-            logger.error("stopping previous %s" % container_name)
+            logger.error(f"stopping previous {container_name}")
             container.stop()
-            logger.error("removing")
+            logger.error(f"removing {container_name}")
             container.remove()
 
-        logger.info("Starting container %s with %s" % (container_name, image))
+        logger.info(f"Starting container {container_name} with {image}")
 
         detach = True
 
@@ -137,6 +140,10 @@ def generic_docker_run(
             interactive = True
             detach = False
             commands = ["/bin/bash", "-l"]
+
+        prefix = container_name + "_children"
+
+        envs["CONTAINER_PREFIX"] = prefix
 
         params = dict(
             working_dir=PWD,
@@ -162,6 +169,7 @@ def generic_docker_run(
                 res = container.wait()
             except NotFound:
                 message = "Interrupted"
+                cleanup(client, prefix)
                 return GenericDockerRunOutput(retcode=0, message=message)
                 # not found; for example, CTRL-C
 
@@ -174,12 +182,33 @@ def generic_docker_run(
                 logger.debug(f"StatusCode: {StatusCode} Error: {Error}")
             if Error is None:
                 Error = f"Container exited with code {StatusCode}"
+
+            cleanup(client, prefix)
             return GenericDockerRunOutput(retcode=StatusCode, message=Error)
 
         else:
             params["remove"] = True
             client.containers.run(image, **params)
+            cleanup(client, prefix)
             return GenericDockerRunOutput(0, "")
+
+
+def cleanup(client: DockerClient, prefix: str):
+    logger.info(f"cleaning up containers with prefix {prefix}")
+    containers = client.containers.list()
+    container: Container
+    for container in containers:
+        n = container.name
+        if n.startswith(prefix):
+            msg = f"Will cleanup child container {n}"
+            logger.info(msg)
+            try:
+                logger.info(f"stopping {n}")
+                container.stop()
+            except:
+                logger.error(traceback.format_exc())
+            logger.info(f"removing {n}")
+            container.remove()
 
 
 def get_developer_volumes(dirname: str = None) -> Dict[str, dict]:
