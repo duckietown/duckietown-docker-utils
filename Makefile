@@ -16,11 +16,10 @@ upload: # v3
 upload-do:
 	rm -f dist/*
 	rm -rf src/*.egg-info
-	python setup.py sdist
+	python3 setup.py sdist
 	twine upload --skip-existing --verbose dist/*
 
 
 bump-upload:
 	$(MAKE) bump
 	$(MAKE) upload
-
