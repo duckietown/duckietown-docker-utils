@@ -158,7 +158,7 @@ def generic_docker_run(
             detach=detach,
             name=container_name,
         )
-        logger.info("Parameters:\n%s" % json.dumps(params, indent=4))
+        # logger.info("Parameters:\n%s" % json.dumps(params, indent=4))
         if detach:
             params["remove"] = False
             container = client.containers.run(image, **params)
@@ -195,7 +195,7 @@ def generic_docker_run(
 
 def cleanup(client: DockerClient, prefix: str):
     logger.info(f"cleaning up containers with prefix {prefix}")
-    containers = client.containers.list()
+    containers = client.containers.list(ignore_removed=True)
     container: Container
     for container in containers:
         n = container.name
