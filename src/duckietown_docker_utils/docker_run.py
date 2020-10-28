@@ -179,7 +179,8 @@ def generic_docker_run(
             if StatusCode:
                 logger.error(f"StatusCode: {StatusCode} Error: {Error}")
             else:
-                logger.debug(f"StatusCode: {StatusCode} Error: {Error}")
+                pass
+                # logger.debug(f"StatusCode: {StatusCode} Error: {Error}")
             if Error is None:
                 Error = f"Container exited with code {StatusCode}"
 
