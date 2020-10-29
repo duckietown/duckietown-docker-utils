@@ -3,6 +3,7 @@ import grp
 import json
 import os
 import platform
+import shutil
 import sys
 import traceback
 from dataclasses import dataclass
@@ -106,6 +107,10 @@ def generic_docker_run(
         volumes2[pwd1] = {"bind": PWD, "mode": "ro" if read_only else "rw"}
         volumes2[f"/var/run/docker.sock"] = {"bind": "/var/run/docker.sock", "mode": "rw"}
         volumes2["/tmp"] = {"bind": "/tmp", "mode": "rw"}
+
+        gitconfig = os.path.expanduser("~/.gitconfig")
+        if os.path.exists(gitconfig):
+            shutil.copy(gitconfig, os.path.join(fake_home_host, ".gitconfig"))
         if development:
             dev_volumes = get_developer_volumes()
             if not dev_volumes:
