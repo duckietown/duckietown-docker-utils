@@ -1,3 +1,4 @@
+import datetime
 import getpass
 import grp
 import json
@@ -120,7 +121,10 @@ def generic_docker_run(
         name, _, tag = image.rpartition(":")
 
         if pull:
-            pull_image(client, image, progress=True)
+            do_it = should_pull(image, 60 * 10)
+
+            if do_it:
+                pull_image(client, image, progress=True)
 
         #
         try:
@@ -224,6 +228,59 @@ def cleanup(client: DockerClient, container_name: Optional[str], prefix: str):
             pass
         else:
             c.remove()
+
+
+import sqlite3
+
+
+def should_pull(image_name: str, period: float) -> bool:
+    fn = "/tmp/pulls.sqlite"
+    conn = sqlite3.connect(fn)
+    c = conn.cursor()
+
+    sql = """
+
+                CREATE TABLE IF NOT EXISTS pulls (
+                    image_name text not null primary key,
+                    last_pull timestamp  not null
+                );
+
+                    """
+    c.execute(sql)
+    conn.commit()
+    sql = """
+        select last_pull from pulls where image_name = ?
+    """
+    c.execute(sql, (image_name,))
+    data = c.fetchone()
+    n = datetime.datetime.now()
+    print("data", data)
+    if not data:
+        sql = """
+                insert into pulls (image_name, last_pull) values (?, ?);
+            """
+        c.execute(sql, (image_name, n))
+        conn.commit()
+        conn.close()
+        return True
+    else:
+        (last,) = data
+        # 3 '2020-10-29 22:31:12.531695'
+        datelast = datetime.datetime.strptime(last, "%Y-%m-%d %H:%M:%S.%f")
+
+        diff = n - datelast
+        s = diff.total_seconds()
+        if s > period:
+            sql = """
+                update  pulls set last_pull = ? where image_name = ?;
+            """
+            c.execute(sql, (n, image_name))
+            conn.close()
+            logger.debug(f"Need to pull because passed {int(s)} > {period} seconds.")
+            return True
+        else:
+            logger.debug(f"No need to pull; passed only {int(s)}  < {period} seconds.")
+            conn.close()
 
 
 def cleanup_children(client, prefix):
