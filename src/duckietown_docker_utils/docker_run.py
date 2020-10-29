@@ -275,7 +275,9 @@ def should_pull(image_name: str, period: float) -> bool:
                 update  pulls set last_pull = ? where image_name = ?;
             """
             c.execute(sql, (n, image_name))
+            conn.commit()
             conn.close()
+
             logger.debug(f"Need to pull because passed {int(s)} > {period} seconds.")
             return True
         else:
