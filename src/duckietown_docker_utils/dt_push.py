@@ -73,7 +73,7 @@ def docker_push_optimized(image_name: str) -> str:
 def push_image(client: DockerClient, image_name: str, progress: bool):
     layers = set()
     pushed = set()
-    pbar = ProgressBar() if progress else None
+    pbar = ProgressBar(maxval=100.0) if progress else None
     for line in client.images.push(image_name, stream=True, decode=True):
         if "id" not in line or "status" not in line:
             continue
@@ -82,8 +82,8 @@ def push_image(client: DockerClient, image_name: str, progress: bool):
         if line["status"] in ["Layer already exists", "Pushed"]:
             pushed.add(layer_id)
         # update progress bar
-        if progress:
+        if pbar:
             percentage = max(0.0, min(1.0, len(pushed) / max(1.0, len(layers)))) * 100.0
             pbar.update(percentage)
-    if progress:
+    if pbar:
         pbar.finish()
