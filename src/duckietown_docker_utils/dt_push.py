@@ -74,6 +74,7 @@ def push_image(client: DockerClient, image_name: str, progress: bool):
     layers = set()
     pushed = set()
     pbar = ProgressBar(maxval=100.0) if progress else None
+    pbar.start()
     for line in client.images.push(image_name, stream=True, decode=True):
         if "id" not in line or "status" not in line:
             continue
