@@ -197,7 +197,7 @@ def generic_docker_run(
 
 
 def cleanup(client: DockerClient, prefix: str):
-    logger.info(f"cleaning up containers with prefix {prefix}")
+    # logger.info(f"cleaning up containers with prefix {prefix}")
     containers = client.containers.list(ignore_removed=True)
     container: Container
     for container in containers:

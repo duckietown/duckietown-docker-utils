@@ -33,10 +33,10 @@ def continuously_monitor(client, container_name: str, log: str = None):
             # time.sleep(5)
             # continue
 
-        logger.info("status: %s" % container.status)
+        # logger.info("status: %s" % container.status)
         if container.status == "exited":
-            msg = "The container exited."
-            logger.info(msg)
+            # msg = "The container exited."
+            # logger.info(msg)
 
             with open(log, "a") as f:
                 for c in container.logs(stdout=True, stderr=True, stream=True, since=last_log_timestamp):
