@@ -9,9 +9,9 @@ bump: # v2
 package=duckietown-docker-utils-daffy
 
 upload: # v3
-	aido-check-not-dirty
-	aido-check-tagged
-	aido-check-need-upload --package $(package) make upload-do
+	dt-check-not-dirty
+	dt-check-tagged
+	dt-check-need-upload --package $(package) make upload-do
 
 upload-do:
 	rm -f dist/*

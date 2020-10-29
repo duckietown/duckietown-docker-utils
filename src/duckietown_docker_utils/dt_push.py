@@ -32,7 +32,7 @@ def dt_push_main(args=None):
 
 
 def docker_push_optimized(image_name: str) -> str:
-    """ Returns the digest """
+    """ Returns the *complete tag* for the image  "a/b:@sha256:...". Without tags. """
     client = DockerClient.from_env()
     image = client.images.get(image_name)
     image_name_no_tag, _, _ = image_name.partition(":")
