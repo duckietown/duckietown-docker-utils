@@ -254,7 +254,7 @@ def should_pull(image_name: str, period: float) -> bool:
     c.execute(sql, (image_name,))
     data = c.fetchone()
     n = datetime.datetime.now()
-    print("data", data)
+
     if not data:
         sql = """
                 insert into pulls (image_name, last_pull) values (?, ?);
