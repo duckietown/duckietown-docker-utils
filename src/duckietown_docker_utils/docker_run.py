@@ -51,6 +51,7 @@ def generic_docker_run(
     container_name: str,
     logname: str,
     detach: bool = True,
+    read_only: bool = True,
 ) -> GenericDockerRunOutput:
     image = replace_important_env_vars(image)
     # logger.debug(f"using image: {image}")
@@ -102,7 +103,7 @@ def generic_docker_run(
         # PWD = "/pwd"
         PWD = pwd1
         # volumes[f'{fake_home}/.docker'] = f'{home}/.docker', False
-        volumes2[pwd1] = {"bind": PWD, "mode": "ro"}
+        volumes2[pwd1] = {"bind": PWD, "mode": "ro" if read_only else "rw"}
         volumes2[f"/var/run/docker.sock"] = {"bind": "/var/run/docker.sock", "mode": "rw"}
         volumes2["/tmp"] = {"bind": "/tmp", "mode": "rw"}
         if development:
