@@ -35,10 +35,11 @@ def docker_push_optimized(image_name: str) -> str:
     """ Returns the digest """
     client = DockerClient.from_env()
     image = client.images.get(image_name)
+    image_name_no_tag, _, _ = image_name.partition(":")
     RepoTags = image.attrs["RepoTags"]
-    RepoTags = [_ for _ in RepoTags if _.startswith(image_name)]
+    RepoTags = [_ for _ in RepoTags if _.startswith(image_name_no_tag)]
     RepoDigests = image.attrs["RepoDigests"]
-    RepoDigests = [_ for _ in RepoDigests if _.startswith(image_name)]
+    RepoDigests = [_ for _ in RepoDigests if _.startswith(image_name_no_tag)]
     logger.debug(f"RepoTags {RepoTags}")
     logger.debug(f"RepoDigests {RepoDigests}")
 
@@ -58,9 +59,9 @@ def docker_push_optimized(image_name: str) -> str:
             break
     image = client.images.get(image_name)
     RepoTags = image.attrs["RepoTags"]
-    RepoTags = [_ for _ in RepoTags if _.startswith(image_name)]
+    RepoTags = [_ for _ in RepoTags if _.startswith(image_name_no_tag)]
     RepoDigests = image.attrs["RepoDigests"]
-    RepoDigests = [_ for _ in RepoDigests if _.startswith(image_name)]
+    RepoDigests = [_ for _ in RepoDigests if _.startswith(image_name_no_tag)]
     logger.debug(f"Updated RepoTags {RepoTags}")
     logger.debug(f"Updated RepoDigests {RepoDigests}")
 
