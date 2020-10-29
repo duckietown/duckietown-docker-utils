@@ -8,6 +8,7 @@ from docker.errors import APIError, NotFound
 from . import logger
 import re
 
+__all__ = ["continuously_monitor"]
 escape = re.compile("\x1b\[[\d;]*?m")
 
 

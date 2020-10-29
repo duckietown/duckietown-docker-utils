@@ -9,7 +9,7 @@ from progressbar import ProgressBar
 
 from . import logger
 
-__all__ = ["dt_push_main"]
+__all__ = ["dt_push_main", "docker_push_optimized"]
 
 
 def dt_push_main(args=None):
@@ -23,7 +23,7 @@ def dt_push_main(args=None):
         if len(rest) != 1:
             raise Exception("need exactly one argument")
 
-        go(rest[0])
+        docker_push_optimized(rest[0])
     except SystemExit:
         raise
     except BaseException:
@@ -31,17 +31,20 @@ def dt_push_main(args=None):
         sys.exit(3)
 
 
-def go(image_name: str):
+def docker_push_optimized(image_name: str) -> str:
+    """ Returns the digest """
     client = DockerClient.from_env()
     image = client.images.get(image_name)
     RepoTags = image.attrs["RepoTags"]
+    RepoTags = [_ for _ in RepoTags if _.startswith(image_name)]
     RepoDigests = image.attrs["RepoDigests"]
+    RepoDigests = [_ for _ in RepoDigests if _.startswith(image_name)]
     logger.debug(f"RepoTags {RepoTags}")
     logger.debug(f"RepoDigests {RepoDigests}")
 
     if RepoDigests:
         logger.info(f"RepoDigests already present; skipping pushing: {RepoDigests}")
-        return
+        return RepoDigests[0]
 
     while True:
         try:
@@ -53,6 +56,15 @@ def go(image_name: str):
             time.sleep(5)
         else:
             break
+    image = client.images.get(image_name)
+    RepoTags = image.attrs["RepoTags"]
+    RepoTags = [_ for _ in RepoTags if _.startswith(image_name)]
+    RepoDigests = image.attrs["RepoDigests"]
+    RepoDigests = [_ for _ in RepoDigests if _.startswith(image_name)]
+    logger.debug(f"Updated RepoTags {RepoTags}")
+    logger.debug(f"Updated RepoDigests {RepoDigests}")
+
+    return RepoDigests[0]
     # for line in client.images.push(image_name, stream=True):
     #     process_docker_api_line(line.decode())
 

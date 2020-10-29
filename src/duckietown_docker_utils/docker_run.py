@@ -17,6 +17,8 @@ from . import logger
 from .constants import CONFIG_DOCKER_PASSWORD, CONFIG_DOCKER_USERNAME, DT1_TOKEN_CONFIG_KEY, IMPORTANT_ENVS
 from .monitoring import continuously_monitor
 
+__all__ = ["GenericDockerRunOutput", "generic_docker_run"]
+
 
 def replace_important_env_vars(s: str) -> str:
     for vname, vdefault in IMPORTANT_ENVS.items():
