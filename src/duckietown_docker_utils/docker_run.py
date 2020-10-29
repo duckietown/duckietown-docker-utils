@@ -10,11 +10,12 @@ from tempfile import TemporaryDirectory
 from typing import Dict, List, Optional
 
 from docker import DockerClient
-from docker.errors import NotFound
+from docker.errors import ContainerError, NotFound
 from docker.models.containers import Container
 
 from . import logger
 from .constants import CONFIG_DOCKER_PASSWORD, CONFIG_DOCKER_USERNAME, DT1_TOKEN_CONFIG_KEY, IMPORTANT_ENVS
+from .dt_push import pull_image
 from .monitoring import continuously_monitor
 
 __all__ = ["GenericDockerRunOutput", "generic_docker_run"]
@@ -49,10 +50,11 @@ def generic_docker_run(
     dt1_token: Optional[str],
     container_name: str,
     logname: str,
+    detach: bool = True,
 ) -> GenericDockerRunOutput:
     image = replace_important_env_vars(image)
-    logger.debug(f"using image: {image}")
-    logger.debug(f"development: {development}")
+    # logger.debug(f"using image: {image}")
+    # logger.debug(f"development: {development}")
     pwd = os.getcwd()
 
     pwd1 = os.path.realpath(pwd)
@@ -97,7 +99,8 @@ def generic_docker_run(
             volumes2[fake_home_host] = {"bind": FAKE_HOME_GUEST, "mode": "rw"}
             envs["HOME"] = FAKE_HOME_GUEST
 
-        PWD = "/pwd"
+        # PWD = "/pwd"
+        PWD = pwd1
         # volumes[f'{fake_home}/.docker'] = f'{home}/.docker', False
         volumes2[pwd1] = {"bind": PWD, "mode": "ro"}
         volumes2[f"/var/run/docker.sock"] = {"bind": "/var/run/docker.sock", "mode": "rw"}
@@ -111,24 +114,20 @@ def generic_docker_run(
         name, _, tag = image.rpartition(":")
 
         if pull:
-            logger.info("Updating container %s" % image)
+            pull_image(client, image, progress=True)
 
-            logger.info("This might take some time.")
-            client.images.pull(name, tag)
         #
         try:
             container = client.containers.get(container_name)
         except:
             pass
         else:
-            logger.error(f"stopping previous {container_name}")
+            # logger.error(f"stopping previous {container_name}")
             container.stop()
-            logger.error(f"removing {container_name}")
+            # logger.error(f"removing {container_name}")
             container.remove()
 
-        logger.info(f"Starting container {container_name} with {image}")
-
-        detach = True
+        # logger.info(f"Starting container {container_name} with {image}")
 
         # add all the groups
         on_mac = "Darwin" in platform.system()
@@ -191,19 +190,34 @@ def generic_docker_run(
 
         else:
             params["remove"] = True
-            client.containers.run(image, **params)
-            cleanup(client, container_name=None, prefix=prefix)
+            # params['detach'] = False
+            try:
+                logger.info("starting run")
+                for line in client.containers.run(image, **params, stream=True, stderr=True):
+                    sys.stderr.write(line.decode())
+            except ContainerError as e:
+                # msg = 'Container run failed'
+                # msg += f'\n exit status: {e.exit_status}'
+                sys.stderr.write(e.stderr.decode() + "\n")
+                # msg += '\n' + indent(e.stderr.decode(), 'stderr > ')
+                sys.exit(e.exit_status)
+                # raise Exception(msg)
+            finally:
+                cleanup(client, container_name=None, prefix=prefix)
             return GenericDockerRunOutput(0, "")
+
+    #
 
 
 def cleanup(client: DockerClient, container_name: Optional[str], prefix: str):
     cleanup_children(client, prefix)
-    try:
-        c = client.containers.get(container_name)
-    except NotFound:
-        pass
-    else:
-        c.remove()
+    if container_name:
+        try:
+            c = client.containers.get(container_name)
+        except NotFound:
+            pass
+        else:
+            c.remove()
 
 
 def cleanup_children(client, prefix):

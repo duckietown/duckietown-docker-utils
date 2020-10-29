@@ -4,8 +4,10 @@ CONFIG_DUCKIETOWN_VERSION = "duckietown_version"
 
 CONFIG_DOCKER_PASSWORD = "docker_password"
 
+ENV_REGISTRY = "AIDO_REGISTRY"
+
 IMPORTANT_ENVS = {
-    "AIDO_REGISTRY": "docker.io",
+    ENV_REGISTRY: "docker.io",
     "PIP_INDEX_URL": "https://pypi.org/simple",
     "DTSERVER": "https://challenges.duckietown.org/v4",
 }

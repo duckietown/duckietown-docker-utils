@@ -1,19 +1,18 @@
 import argparse
-import logging
 import sys
 import time
 import traceback
 
 from docker import DockerClient
-from progressbar import ProgressBar
+from progressbar import Bar, ETA, Percentage, ProgressBar
 
 from . import logger
 
-__all__ = ["dt_push_main", "docker_push_optimized"]
+__all__ = ["dt_push_main", "docker_push_optimized", "push_image", "pull_image"]
 
 
 def dt_push_main(args=None):
-    logging.basicConfig()
+
     parser = argparse.ArgumentParser()
     # parser.add_argument("--image", required=True)
     parsed, rest = parser.parse_known_args(args=args)
@@ -23,7 +22,9 @@ def dt_push_main(args=None):
         if len(rest) != 1:
             raise Exception("need exactly one argument")
 
-        docker_push_optimized(rest[0])
+        image = rest[0]
+        logger.info(f"pushing image {image}")
+        docker_push_optimized(image)
     except SystemExit:
         raise
     except BaseException:
@@ -73,7 +74,8 @@ def docker_push_optimized(image_name: str) -> str:
 def push_image(client: DockerClient, image_name: str, progress: bool):
     layers = set()
     pushed = set()
-    pbar = ProgressBar(maxval=100.0) if progress else None
+    widgets = [f"push {image_name} ", Percentage(), " ", Bar(), " ", ETA()]
+    pbar = ProgressBar(maxval=100.0, widgets=widgets) if progress else None
     pbar.start()
     for line in client.images.push(image_name, stream=True, decode=True):
         if "id" not in line or "status" not in line:
@@ -88,3 +90,23 @@ def push_image(client: DockerClient, image_name: str, progress: bool):
             pbar.update(percentage)
     if pbar:
         pbar.finish()
+
+
+def pull_image(client: DockerClient, image_name: str, progress: bool):
+    name, _, tag = image_name.rpartition(":")
+    total_layers = set()
+    completed_layers = set()
+    widgets = [f"pull {image_name} ", Percentage(), " ", Bar(), " ", ETA()]
+    pbar = ProgressBar(maxval=100.0, widgets=widgets) if progress else None
+    pbar.start()
+    for step in client.api.pull(name, tag, stream=True, decode=True):
+        if "status" not in step or "id" not in step:
+            continue
+        total_layers.add(step["id"])
+        if step["status"] in ["Download complete", "Pull complete"]:
+            completed_layers.add(step["id"])
+        # compute progress
+        if len(total_layers) > 0:
+            progress = int(100 * len(completed_layers) / len(total_layers))
+            pbar.update(progress)
+    pbar.update(100)

@@ -9,8 +9,8 @@ bump: # v2
 package=duckietown-docker-utils-daffy
 
 upload: # v3
-	dt-check-not-dirty
-	dt-check-tagged
+	dts -q build_utils check-not-dirty
+	dts -q build_utils check-tagged
 	dt-check-need-upload --package $(package) make upload-do
 
 upload-do:
