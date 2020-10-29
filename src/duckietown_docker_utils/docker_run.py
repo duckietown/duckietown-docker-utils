@@ -171,7 +171,7 @@ def generic_docker_run(
                 res = container.wait()
             except NotFound:
                 message = "Interrupted"
-                cleanup(client, prefix)
+                cleanup(client, container_name=container_name, prefix=prefix)
                 return GenericDockerRunOutput(retcode=0, message=message)
                 # not found; for example, CTRL-C
 
@@ -186,17 +186,27 @@ def generic_docker_run(
             if Error is None:
                 Error = f"Container exited with code {StatusCode}"
 
-            cleanup(client, prefix)
+            cleanup(client, container_name=container_name, prefix=prefix)
             return GenericDockerRunOutput(retcode=StatusCode, message=Error)
 
         else:
             params["remove"] = True
             client.containers.run(image, **params)
-            cleanup(client, prefix)
+            cleanup(client, container_name=None, prefix=prefix)
             return GenericDockerRunOutput(0, "")
 
 
-def cleanup(client: DockerClient, prefix: str):
+def cleanup(client: DockerClient, container_name: Optional[str], prefix: str):
+    cleanup_children(client, prefix)
+    try:
+        c = client.containers.get(container_name)
+    except NotFound:
+        pass
+    else:
+        c.remove()
+
+
+def cleanup_children(client, prefix):
     # logger.info(f"cleaning up containers with prefix {prefix}")
     containers = client.containers.list(ignore_removed=True)
     container: Container
