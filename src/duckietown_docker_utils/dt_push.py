@@ -49,6 +49,8 @@ def docker_push_optimized(image_name: str) -> str:
     client = DockerClient.from_env()
     image = client.images.get(image_name)
     image_name_no_tag, _, _ = image_name.partition(":")
+    # XXX: apparently docker does not store 'docker.io'
+    image_name_no_tag = image_name_no_tag.replace("docker.io/", "")
     RepoTags = image.attrs["RepoTags"]
     RepoTags = [_ for _ in RepoTags if _.startswith(image_name_no_tag)]
     RepoDigests = image.attrs["RepoDigests"]
@@ -68,7 +70,7 @@ def docker_push_optimized(image_name: str) -> str:
     RepoDigests = [_ for _ in RepoDigests if _.startswith(image_name_no_tag)]
 
     if not RepoDigests:
-        msg = f"cannot find compatible digests\n\nattrs: {image.attrs}"
+        msg = f"cannot find compatible digests\nstarts with {image_name_no_tag} \nattrs: {image.attrs}"
         raise Exception(msg)
     # logger.debug(f"Updated RepoTags {RepoTags}")
     # logger.debug(f"Updated RepoDigests {RepoDigests}")
@@ -87,24 +89,37 @@ def push_image(client: DockerClient, image_name: str, progress: bool):
     pbar.start()
     sys.stderr.flush()
     for line in client.images.push(image_name, stream=True, decode=True):
+        # update progress bar
+        if pbar:
+            percentage = max(0.0, min(1.0, len(pushed) / max(1.0, len(layers)))) * 100.0
+            pbar.update(percentage)
+            sys.stderr.flush()
         if "id" not in line or "status" not in line:
             continue
         layer_id = line["id"]
         layers.add(layer_id)
         if line["status"] in ["Layer already exists", "Pushed"]:
             pushed.add(layer_id)
-        # update progress bar
-        if pbar:
-            percentage = max(0.0, min(1.0, len(pushed) / max(1.0, len(layers)))) * 100.0
-            pbar.update(percentage)
-            sys.stderr.flush()
+
     if pbar:
         pbar.finish()
         sys.stderr.flush()
 
 
 def pull_image(client: DockerClient, image_name: str, progress: bool):
-    name, _, tag = image_name.rpartition(":")
+    if "@" in image_name:
+        rest, _, sha = image_name.rpartition("@")
+    else:
+        rest = image_name
+        sha = None
+    # logger.info(f'rest: {rest}')
+    if ":" in rest:
+        name, _, tag = rest.rpartition(":")
+    else:
+        tag = None
+        name = rest
+
+    logger.info(f"{image_name!r}\nname {name!r}\ntag {tag!r}\nsha {sha!r}")
     total_layers = set()
     completed_layers = set()
     _, _, image_name_short = image_name.rpartition("/")
