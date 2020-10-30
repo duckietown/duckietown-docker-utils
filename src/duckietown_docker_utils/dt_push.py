@@ -12,7 +12,6 @@ __all__ = ["dt_push_main", "docker_push_optimized", "push_image", "pull_image", 
 
 
 def dt_push_main(args=None):
-
     parser = argparse.ArgumentParser()
     # parser.add_argument("--image", required=True)
     parsed, rest = parser.parse_known_args(args=args)
@@ -67,6 +66,10 @@ def docker_push_optimized(image_name: str) -> str:
     RepoTags = [_ for _ in RepoTags if _.startswith(image_name_no_tag)]
     RepoDigests = image.attrs["RepoDigests"]
     RepoDigests = [_ for _ in RepoDigests if _.startswith(image_name_no_tag)]
+
+    if not RepoDigests:
+        msg = f"cannot find compatible digests\n\nattrs: {image.attrs}"
+        raise Exception(msg)
     # logger.debug(f"Updated RepoTags {RepoTags}")
     # logger.debug(f"Updated RepoDigests {RepoDigests}")
 
