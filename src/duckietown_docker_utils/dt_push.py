@@ -74,7 +74,8 @@ def docker_push_optimized(image_name: str) -> str:
 def push_image(client: DockerClient, image_name: str, progress: bool):
     layers = set()
     pushed = set()
-    widgets = [f"push {image_name} ", Percentage(), " ", Bar(), " ", ETA()]
+    _, _, image_name_short = image_name.rpartition("/")
+    widgets = [f"push {image_name_short} ", Percentage(), " ", Bar(), " ", ETA()]
     pbar = ProgressBar(maxval=100.0, widgets=widgets) if progress else None
     pbar.start()
     sys.stderr.flush()
@@ -99,7 +100,8 @@ def pull_image(client: DockerClient, image_name: str, progress: bool):
     name, _, tag = image_name.rpartition(":")
     total_layers = set()
     completed_layers = set()
-    widgets = [f"pull {image_name} ", Percentage(), " ", Bar(), " ", ETA()]
+    _, _, image_name_short = image_name.rpartition("/")
+    widgets = [f"pull {image_name_short} ", Percentage(), " ", Bar(), " ", ETA()]
     pbar = ProgressBar(maxval=100.0, widgets=widgets) if progress else None
     pbar.start()
     sys.stderr.flush()
