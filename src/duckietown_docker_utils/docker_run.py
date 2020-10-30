@@ -170,7 +170,7 @@ def generic_docker_run(
             detach=detach,
             name=container_name,
         )
-        logger.error("Parameters:\n%s" % json.dumps(params, indent=4))
+        # logger.error("Parameters:\n%s" % json.dumps(params, indent=4))
         # return
         if detach:
             params["remove"] = False
