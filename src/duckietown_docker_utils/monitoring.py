@@ -20,7 +20,7 @@ def continuously_monitor(client, container_name: str, log: str = None):
     if log is None:
         log = f"{container_name}.log"
 
-    logger.debug(f"Monitoring container {container_name}; logs at {log}")
+        logger.debug(f"Monitoring container {container_name}; logs at {log}")
     last_log_timestamp = None
     while True:
         try:
@@ -51,8 +51,8 @@ def continuously_monitor(client, container_name: str, log: str = None):
                     # sys.stderr.write(log_line)
                     # f.write(remove_escapes(log_line))
 
-            msg = f"Logs saved at {log}"
-            logger.info(msg)
+            # msg = f"Logs saved at {log}"
+            # logger.info(msg)
 
             # return container.exit_code
             return  # XXX

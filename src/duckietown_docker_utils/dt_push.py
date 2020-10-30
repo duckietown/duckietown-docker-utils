@@ -41,11 +41,11 @@ def docker_push_optimized(image_name: str) -> str:
     RepoTags = [_ for _ in RepoTags if _.startswith(image_name_no_tag)]
     RepoDigests = image.attrs["RepoDigests"]
     RepoDigests = [_ for _ in RepoDigests if _.startswith(image_name_no_tag)]
-    logger.debug(f"RepoTags {RepoTags}")
-    logger.debug(f"RepoDigests {RepoDigests}")
+    # logger.debug(f"RepoTags {RepoTags}")
+    # logger.debug(f"RepoDigests {RepoDigests}")
 
     if RepoDigests:
-        logger.info(f"RepoDigests already present; skipping pushing: {RepoDigests}")
+        logger.debug(f"RepoDigests already present; skipping pushing: {RepoDigests}")
         return RepoDigests[0]
 
     while True:
@@ -63,8 +63,8 @@ def docker_push_optimized(image_name: str) -> str:
     RepoTags = [_ for _ in RepoTags if _.startswith(image_name_no_tag)]
     RepoDigests = image.attrs["RepoDigests"]
     RepoDigests = [_ for _ in RepoDigests if _.startswith(image_name_no_tag)]
-    logger.debug(f"Updated RepoTags {RepoTags}")
-    logger.debug(f"Updated RepoDigests {RepoDigests}")
+    # logger.debug(f"Updated RepoTags {RepoTags}")
+    # logger.debug(f"Updated RepoDigests {RepoDigests}")
 
     return RepoDigests[0]
     # for line in client.images.push(image_name, stream=True):
