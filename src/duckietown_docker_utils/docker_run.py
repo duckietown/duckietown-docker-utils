@@ -11,7 +11,7 @@ import traceback
 from dataclasses import dataclass
 from tempfile import TemporaryDirectory
 from typing import Dict, List, Optional
-
+import json
 from docker import DockerClient
 from docker.errors import ContainerError, NotFound
 from docker.models.containers import Container
@@ -74,7 +74,7 @@ def generic_docker_run(
         CONFIG_DOCKER_PASSWORD: docker_secret,
         DT1_TOKEN_CONFIG_KEY: dt1_token,
     }
-    FAKE_HOME_GUEST = "/home"
+    FAKE_HOME_GUEST = "/fake-home"
     with TemporaryDirectory() as tmpdir:
         fake_home_host = os.path.join(tmpdir, "fake-home")
         os.makedirs(fake_home_host)
@@ -170,7 +170,8 @@ def generic_docker_run(
             detach=detach,
             name=container_name,
         )
-        # logger.info("Parameters:\n%s" % json.dumps(params, indent=4))
+        logger.error("Parameters:\n%s" % json.dumps(params, indent=4))
+        # return
         if detach:
             params["remove"] = False
             container = client.containers.run(image, **params)
@@ -204,6 +205,8 @@ def generic_docker_run(
             # params['detach'] = False
             try:
                 logger.info("starting run")
+                
+                logger.info(json.dumps(params))
                 for line in client.containers.run(image, **params, stream=True, stderr=True):
                     sys.stderr.write(line.decode())
             except ContainerError as e:
