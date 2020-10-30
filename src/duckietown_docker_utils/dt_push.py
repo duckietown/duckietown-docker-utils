@@ -77,6 +77,7 @@ def push_image(client: DockerClient, image_name: str, progress: bool):
     widgets = [f"push {image_name} ", Percentage(), " ", Bar(), " ", ETA()]
     pbar = ProgressBar(maxval=100.0, widgets=widgets) if progress else None
     pbar.start()
+    sys.stderr.flush()
     for line in client.images.push(image_name, stream=True, decode=True):
         if "id" not in line or "status" not in line:
             continue
@@ -88,8 +89,10 @@ def push_image(client: DockerClient, image_name: str, progress: bool):
         if pbar:
             percentage = max(0.0, min(1.0, len(pushed) / max(1.0, len(layers)))) * 100.0
             pbar.update(percentage)
+            sys.stderr.flush()
     if pbar:
         pbar.finish()
+        sys.stderr.flush()
 
 
 def pull_image(client: DockerClient, image_name: str, progress: bool):
@@ -99,6 +102,7 @@ def pull_image(client: DockerClient, image_name: str, progress: bool):
     widgets = [f"pull {image_name} ", Percentage(), " ", Bar(), " ", ETA()]
     pbar = ProgressBar(maxval=100.0, widgets=widgets) if progress else None
     pbar.start()
+    sys.stderr.flush()
     for step in client.api.pull(name, tag, stream=True, decode=True):
         if "status" not in step or "id" not in step:
             continue
@@ -109,4 +113,6 @@ def pull_image(client: DockerClient, image_name: str, progress: bool):
         if len(total_layers) > 0:
             progress = int(100 * len(completed_layers) / len(total_layers))
             pbar.update(progress)
+            sys.stderr.flush()
     pbar.update(100)
+    sys.stderr.flush()

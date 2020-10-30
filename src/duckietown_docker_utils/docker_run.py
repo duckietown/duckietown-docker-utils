@@ -146,7 +146,7 @@ def generic_docker_run(
         else:
             group_add = [g.gr_gid for g in grp.getgrall() if getpass.getuser() in g.gr_mem]
 
-        interactive = False
+        interactive = True
         if shell:
             interactive = True
             detach = False

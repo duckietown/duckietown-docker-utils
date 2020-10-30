@@ -38,12 +38,18 @@ def continuously_monitor(client, container_name: str, log: str = None):
             # msg = "The container exited."
             # logger.info(msg)
 
-            with open(log, "a") as f:
+            with open(log, "ab") as f:
                 for c in container.logs(stdout=True, stderr=True, stream=True, since=last_log_timestamp):
-                    last_log_timestamp = datetime.datetime.now()
-                    log_line = c.decode("utf-8")
-                    sys.stderr.write(log_line)
-                    f.write(remove_escapes(log_line))
+                    # last_log_timestamp = datetime.datetime.now()
+
+                    sys.stderr.buffer.write(c)
+                    sys.stderr.buffer.flush()
+                    f.write(c)
+                    f.flush()
+                    #
+                    # log_line = c.decode("utf-8")
+                    # sys.stderr.write(log_line)
+                    # f.write(remove_escapes(log_line))
 
             msg = f"Logs saved at {log}"
             logger.info(msg)
@@ -51,13 +57,17 @@ def continuously_monitor(client, container_name: str, log: str = None):
             # return container.exit_code
             return  # XXX
         try:
-            with open(log, "a") as f:
+            with open(log, "ab") as f:
                 for c in container.logs(
                     stdout=True, stderr=True, stream=True, follow=True, since=last_log_timestamp,
                 ):
-                    log_line = c.decode("utf-8")
-                    sys.stderr.write(log_line)
-                    f.write(remove_escapes(log_line))
+                    sys.stderr.buffer.write(c)
+                    sys.stderr.buffer.flush()
+                    f.write(c)
+                    f.flush()
+                    # log_line = c.decode("utf-8")
+                    # sys.stderr.write(log_line)
+                    # f.write(remove_escapes(log_line))
                     last_log_timestamp = datetime.datetime.now()
 
             time.sleep(3)
