@@ -6,6 +6,7 @@ import os
 import platform
 import shutil
 import sys
+import time
 import traceback
 from dataclasses import dataclass
 from tempfile import TemporaryDirectory
@@ -233,7 +234,16 @@ def cleanup(client: DockerClient, container_name: Optional[str], prefix: str):
 import sqlite3
 
 
-def should_pull(image_name: str, period: float) -> bool:
+def should_pull(image_name: str, period: float):
+    while True:
+        try:
+            return should_pull_(image_name, period)
+        except sqlite3.OperationalError:
+            logger.warning("db locked, trying again in 10")
+            time.sleep(10)
+
+
+def should_pull_(image_name: str, period: float) -> bool:
     fn = "/tmp/pulls.sqlite"
     conn = sqlite3.connect(fn)
     c = conn.cursor()
