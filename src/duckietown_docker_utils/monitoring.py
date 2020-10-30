@@ -43,9 +43,11 @@ def continuously_monitor(client, container_name: str, log: str = None):
                     # last_log_timestamp = datetime.datetime.now()
 
                     sys.stderr.buffer.write(c)
-                    sys.stderr.buffer.flush()
+
                     f.write(c)
-                    f.flush()
+                    if b"\n" in c or b"\r" in c:
+                        sys.stderr.buffer.flush()
+                        f.flush()
                     #
                     # log_line = c.decode("utf-8")
                     # sys.stderr.write(log_line)
@@ -62,9 +64,11 @@ def continuously_monitor(client, container_name: str, log: str = None):
                     stdout=True, stderr=True, stream=True, follow=True, since=last_log_timestamp,
                 ):
                     sys.stderr.buffer.write(c)
-                    sys.stderr.buffer.flush()
                     f.write(c)
-                    f.flush()
+                    if b"\n" in c or b"\r" in c:
+                        sys.stderr.buffer.flush()
+                        f.flush()
+
                     # log_line = c.decode("utf-8")
                     # sys.stderr.write(log_line)
                     # f.write(remove_escapes(log_line))
