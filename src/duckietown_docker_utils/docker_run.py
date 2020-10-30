@@ -288,10 +288,10 @@ def should_pull_(image_name: str, period: float) -> bool:
             conn.commit()
             conn.close()
 
-            logger.debug(f"Need to pull because passed {int(s)} > {period} seconds.")
+            logger.debug(f"Need to pull {image_name} because passed {int(s)} > {period} seconds.")
             return True
         else:
-            logger.debug(f"No need to pull; passed only {int(s)}  < {period} seconds.")
+            logger.debug(f"No need to pull {image_name}; passed only {int(s)}  < {period} seconds.")
             conn.close()
 
 
