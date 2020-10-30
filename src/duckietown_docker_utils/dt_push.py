@@ -8,7 +8,7 @@ from progressbar import Bar, ETA, Percentage, ProgressBar
 
 from . import logger
 
-__all__ = ["dt_push_main", "docker_push_optimized", "push_image", "pull_image"]
+__all__ = ["dt_push_main", "docker_push_optimized", "push_image", "pull_image", "docker_push_retry"]
 
 
 def dt_push_main(args=None):
@@ -32,6 +32,19 @@ def dt_push_main(args=None):
         sys.exit(3)
 
 
+def docker_push_retry(client: DockerClient, image_name):
+    while True:
+        try:
+            logger.info(f"Pushing {image_name}")
+            push_image(client, image_name, progress=True)
+        except:
+            logger.error(traceback.format_exc())
+            logger.error("retrying in 5 seconds")
+            time.sleep(5)
+        else:
+            break
+
+
 def docker_push_optimized(image_name: str) -> str:
     """ Returns the *complete tag* for the image  "a/b:@sha256:...". Without tags. """
     client = DockerClient.from_env()
@@ -47,17 +60,8 @@ def docker_push_optimized(image_name: str) -> str:
     if RepoDigests:
         logger.debug(f"RepoDigests already present; skipping pushing: {RepoDigests}")
         return RepoDigests[0]
+    docker_push_retry(client, image_name)
 
-    while True:
-        try:
-            logger.info(f"Pushing {image_name}")
-            push_image(client, image_name, progress=True)
-        except:
-            logger.error(traceback.format_exc())
-            logger.error("retrying in 5 seconds")
-            time.sleep(5)
-        else:
-            break
     image = client.images.get(image_name)
     RepoTags = image.attrs["RepoTags"]
     RepoTags = [_ for _ in RepoTags if _.startswith(image_name_no_tag)]
