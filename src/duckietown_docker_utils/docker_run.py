@@ -11,17 +11,17 @@ import traceback
 from dataclasses import dataclass
 from tempfile import TemporaryDirectory
 from typing import Dict, List, Optional
-import json
+
 from docker import DockerClient
 from docker.errors import ContainerError, NotFound
 from docker.models.containers import Container
+from progressbar import Bar, ETA, Percentage, ProgressBar
 
 from . import logger
 from .constants import CONFIG_DOCKER_PASSWORD, CONFIG_DOCKER_USERNAME, DT1_TOKEN_CONFIG_KEY, IMPORTANT_ENVS
-from .dt_push import pull_image
 from .monitoring import continuously_monitor
 
-__all__ = ["GenericDockerRunOutput", "generic_docker_run"]
+__all__ = ["GenericDockerRunOutput", "generic_docker_run", "get_developer_volumes"]
 
 
 def replace_important_env_vars(s: str) -> str:
@@ -205,7 +205,7 @@ def generic_docker_run(
             # params['detach'] = False
             try:
                 logger.info("starting run")
-                
+
                 logger.info(json.dumps(params))
                 for line in client.containers.run(image, **params, stream=True, stderr=True):
                     sys.stderr.write(line.decode())
@@ -365,3 +365,39 @@ if __name__ == "__main__":
 
     volumes = [f'{k}:{v["bind"]}:{v["mode"]}' for k, v in envs.items()]
     print("\n- ".join(volumes))
+
+
+def pull_image(client: DockerClient, image_name: str, progress: bool):
+    if "@" in image_name:
+        rest, _, sha = image_name.rpartition("@")
+    else:
+        rest = image_name
+        sha = None
+    # logger.info(f'rest: {rest}')
+    if ":" in rest:
+        name, _, tag = rest.rpartition(":")
+    else:
+        tag = None
+        name = rest
+
+    logger.info(f"{image_name!r}\nname {name!r}\ntag {tag!r}\nsha {sha!r}")
+    total_layers = set()
+    completed_layers = set()
+    _, _, image_name_short = image_name.rpartition("/")
+    widgets = [f"pull {image_name_short} ", Percentage(), " ", Bar(), " ", ETA()]
+    pbar = ProgressBar(maxval=100.0, widgets=widgets) if progress else None
+    pbar.start()
+    sys.stderr.flush()
+    for step in client.api.pull(name, tag, stream=True, decode=True):
+        if "status" not in step or "id" not in step:
+            continue
+        total_layers.add(step["id"])
+        if step["status"] in ["Download complete", "Pull complete"]:
+            completed_layers.add(step["id"])
+        # compute progress
+        if len(total_layers) > 0:
+            progress = int(100 * len(completed_layers) / len(total_layers))
+            pbar.update(progress)
+            sys.stderr.flush()
+    pbar.update(100)
+    sys.stderr.flush()
