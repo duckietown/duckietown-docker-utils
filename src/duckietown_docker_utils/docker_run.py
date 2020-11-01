@@ -16,6 +16,7 @@ from typing import Dict, List, Optional
 from docker import DockerClient
 from docker.errors import ContainerError, NotFound
 from docker.models.containers import Container
+from duckietown_docker_utils.terminal_size import get_screen_columns
 from progressbar import Bar, ETA, Percentage, ProgressBar
 
 from . import logger
@@ -132,8 +133,9 @@ def generic_docker_run(
 
         envs["PROGRESSBAR_LINE_BREAKS"] = "1"
         envs["PROGRESSBAR_ENABLE_COLORS"] = "1"
-        if "COLUMNS" in os.environ:
-            envs["COLUMNS"] = os.environ["COLUMNS"]
+        # if "COLUMNS" in os.environ:
+        #     envs["COLUMNS"] = os.environ["COLUMNS"]
+        envs["COLUMNS"] = str(get_screen_columns())
 
         name, _, tag = image.rpartition(":")
 
