@@ -57,6 +57,7 @@ def generic_docker_run(
     detach: bool = True,
     read_only: bool = True,
 ) -> GenericDockerRunOutput:
+
     image = replace_important_env_vars(image)
     # logger.debug(f"using image: {image}")
     # logger.debug(f"development: {development}")
@@ -118,6 +119,15 @@ def generic_docker_run(
             dev_volumes = get_developer_volumes()
             if not dev_volumes:
                 logger.warning("development active but no mounts found")
+
+            else:
+                DED = os.environ.get("DT_ENV_DEVELOPER")
+                if os.path.exists(DED):
+                    dev_volumes[DED] = {"bind": DED, "mode": "ro"}
+                    envs["DT_MOUNT"] = "1"
+                else:
+                    logger.error(f"could not find {DED}")
+
             volumes2.update(dev_volumes)
 
         name, _, tag = image.rpartition(":")
@@ -363,13 +373,6 @@ def get_args_for_env(envs: Dict[str, str]) -> List[str]:
     return args
 
 
-if __name__ == "__main__":
-    envs = get_developer_volumes()
-
-    volumes = [f'{k}:{v["bind"]}:{v["mode"]}' for k, v in envs.items()]
-    print("\n- ".join(volumes))
-
-
 def pull_image(client: DockerClient, image_name: str, progress: bool):
     if "@" in image_name:
         rest, _, sha = image_name.rpartition("@")
@@ -398,9 +401,9 @@ def pull_image(client: DockerClient, image_name: str, progress: bool):
         if step["status"] in ["Download complete", "Pull complete"]:
             completed_layers.add(step["id"])
         # compute progress
-        if len(total_layers) > 0:
-            progress = int(100 * len(completed_layers) / len(total_layers))
-            pbar.update(progress)
-            sys.stderr.flush()
+        # if len(total_layers) > 0:
+        progress = int(100 * len(completed_layers) / max(1, len(total_layers)))
+        pbar.update(progress)
+        sys.stderr.flush()
     pbar.update(100)
     sys.stderr.flush()
