@@ -4,6 +4,7 @@ import grp
 import json
 import os
 import platform
+import random
 import shutil
 import sys
 import time
@@ -242,8 +243,10 @@ def should_pull(image_name: str, period: float):
         try:
             return should_pull_(image_name, period)
         except sqlite3.OperationalError:
-            logger.warning("db locked, trying again in 10")
-            time.sleep(10)
+
+            s = random.uniform(0.1, 2)
+            logger.warning(f"db locked, trying again in {s:.1f}s")
+            time.sleep(s)
 
 
 def should_pull_(image_name: str, period: float) -> bool:
@@ -253,12 +256,12 @@ def should_pull_(image_name: str, period: float) -> bool:
 
     sql = """
 
-                CREATE TABLE IF NOT EXISTS pulls (
-                    image_name text not null primary key,
-                    last_pull timestamp  not null
-                );
+        CREATE TABLE IF NOT EXISTS pulls (
+            image_name text not null primary key,
+            last_pull timestamp  not null
+        );
 
-                    """
+            """
     c.execute(sql)
     conn.commit()
     sql = """
