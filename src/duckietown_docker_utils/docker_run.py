@@ -130,6 +130,11 @@ def generic_docker_run(
 
             volumes2.update(dev_volumes)
 
+        envs["PROGRESSBAR_LINE_BREAKS"] = "1"
+        envs["PROGRESSBAR_ENABLE_COLORS"] = "1"
+        if "COLUMNS" in os.environ:
+            envs["COLUMNS"] = os.environ["COLUMNS"]
+
         name, _, tag = image.rpartition(":")
 
         if pull:
