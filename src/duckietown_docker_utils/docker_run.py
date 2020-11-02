@@ -6,6 +6,7 @@ import os
 import platform
 import random
 import shutil
+import subprocess
 import sys
 import time
 import traceback
@@ -67,6 +68,16 @@ def generic_docker_run(
     pwd1 = os.path.realpath(pwd)
     user = getpass.getuser()
 
+    try:
+        repo_root = subprocess.check_output(["git", "rev-parse", "--show-toplevel"]).decode().strip()
+    except Exception as e:
+        msg = f"Cannot get repo_root from {pwd1}: \n{e}"
+
+        pwd_to_share = pwd
+    else:
+        logger.info(f"repo_root = {repo_root}")
+        pwd_to_share = repo_root
+
     volumes2: Dict[str, dict] = {}
     envs = {}
     for k, default in IMPORTANT_ENVS.items():
@@ -109,7 +120,7 @@ def generic_docker_run(
         # PWD = "/pwd"
         PWD = pwd1
         # volumes[f'{fake_home}/.docker'] = f'{home}/.docker', False
-        volumes2[pwd1] = {"bind": PWD, "mode": "ro" if read_only else "rw"}
+        volumes2[pwd_to_share] = {"bind": pwd_to_share, "mode": "ro" if read_only else "rw"}
         volumes2[f"/var/run/docker.sock"] = {"bind": "/var/run/docker.sock", "mode": "rw"}
         volumes2["/tmp"] = {"bind": "/tmp", "mode": "rw"}
 
