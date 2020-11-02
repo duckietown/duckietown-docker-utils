@@ -137,6 +137,7 @@ def generic_docker_run(
                 if os.path.exists(DED):
                     dev_volumes[DED] = {"bind": DED, "mode": "ro"}
                     envs["DT_MOUNT"] = "1"
+                    envs["DT_ENV_DEVELOPER"] = DED
                 else:
                     logger.error(f"could not find {DED}")
 
