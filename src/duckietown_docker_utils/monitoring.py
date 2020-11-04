@@ -1,4 +1,5 @@
 import datetime
+import re
 import sys
 import time
 import traceback
@@ -6,7 +7,6 @@ import traceback
 from docker.errors import APIError, NotFound
 
 from . import logger
-import re
 
 __all__ = ["continuously_monitor"]
 escape = re.compile("\x1b\[[\d;]*?m")
@@ -59,15 +59,39 @@ def continuously_monitor(client, container_name: str, log: str = None):
             # return container.exit_code
             return  # XXX
         try:
+
+            def is_updating(a: bytes):
+                return b"pushing" in a or (b"pulling" in a)
+
             with open(log, "ab") as f:
+                building = b""
+                last_sent: bytes = b""
+
                 for c in container.logs(
                     stdout=True, stderr=True, stream=True, follow=True, since=last_log_timestamp,
                 ):
-                    sys.stderr.buffer.write(c)
+                    # logger.info(f'c = {c}')
+
                     f.write(c)
-                    if b"\n" in c or b"\r" in c:
+                    f.flush()
+
+                    building += c
+
+                    if b"\n" in c:
+
+                        # if is_updating(last_sent) and c == b'\n':
+                        #     continue
+                        if is_updating(building):
+                            building = b"\r" + building.replace(b"\r\n", b"")
+
+                        sys.stderr.buffer.write(building)
+
                         sys.stderr.buffer.flush()
-                        f.flush()
+                        # sys.stderr.write(building.decode())
+                        # sys.stderr.flush()
+                        # logger.info(f'b={building}')
+                        last_sent = building
+                        building = b""
 
                     # log_line = c.decode("utf-8")
                     # sys.stderr.write(log_line)
