@@ -17,11 +17,17 @@ from typing import Dict, List, Optional
 from docker import DockerClient
 from docker.errors import ContainerError, NotFound
 from docker.models.containers import Container
-from duckietown_docker_utils.terminal_size import get_screen_columns
 from progressbar import Bar, ETA, Percentage, ProgressBar
 
+from duckietown_docker_utils.terminal_size import get_screen_columns
 from . import logger
-from .constants import CONFIG_DOCKER_PASSWORD, CONFIG_DOCKER_USERNAME, DT1_TOKEN_CONFIG_KEY, IMPORTANT_ENVS
+from .constants import (
+    CONFIG_DOCKER_PASSWORD,
+    CONFIG_DOCKER_USERNAME,
+    DEPTH_VAR,
+    DT1_TOKEN_CONFIG_KEY,
+    IMPORTANT_ENVS,
+)
 from .monitoring import continuously_monitor
 
 __all__ = ["GenericDockerRunOutput", "generic_docker_run", "get_developer_volumes"]
@@ -59,7 +65,6 @@ def generic_docker_run(
     detach: bool = True,
     read_only: bool = True,
 ) -> GenericDockerRunOutput:
-
     image = replace_important_env_vars(image)
     # logger.debug(f"using image: {image}")
     # logger.debug(f"development: {development}")
@@ -143,6 +148,9 @@ def generic_docker_run(
 
             volumes2.update(dev_volumes)
 
+        depth = int(os.environ.get(DEPTH_VAR, "0"))
+
+        envs[DEPTH_VAR] = str(depth + 1)
         # envs["PROGRESSBAR_LINE_BREAKS"] = "1"
         envs["PROGRESSBAR_ENABLE_COLORS"] = "1"
         # if "COLUMNS" in os.environ:
@@ -377,7 +385,6 @@ def get_developer_volumes(dirname: str = None) -> Dict[str, dict]:
             # local = os.path.join(val, local)
             exists = os.path.exists(host)
             if not exists:
-
                 logger.warning(f"Could not find directory {host} mentioned in {name}")
             if exists:
                 res[host] = {"bind": guest, "mode": "ro"}

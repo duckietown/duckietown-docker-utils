@@ -11,3 +11,6 @@ IMPORTANT_ENVS = {
     "PIP_INDEX_URL": "https://pypi.org/simple",
     "DTSERVER": "https://challenges.duckietown.org/v4",
 }
+
+
+DEPTH_VAR = "DOCKER_DEPTH"

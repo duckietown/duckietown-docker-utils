@@ -1,4 +1,5 @@
 import datetime
+import os
 import re
 import sys
 import time
@@ -7,6 +8,7 @@ import traceback
 from docker.errors import APIError, NotFound
 
 from . import logger
+from .constants import DEPTH_VAR
 
 __all__ = ["continuously_monitor"]
 escape = re.compile("\x1b\[[\d;]*?m")
@@ -17,6 +19,8 @@ def remove_escapes(s):
 
 
 def continuously_monitor(client, container_name: str, log: str = None):
+    depth = int(os.environ.get(DEPTH_VAR, "0"))
+
     if log is None:
         log = f"{container_name}.log"
 
@@ -65,7 +69,6 @@ def continuously_monitor(client, container_name: str, log: str = None):
 
             with open(log, "ab") as f:
                 building = b""
-                last_sent: bytes = b""
 
                 for c in container.logs(
                     stdout=True, stderr=True, stream=True, follow=True, since=last_log_timestamp,
@@ -81,16 +84,17 @@ def continuously_monitor(client, container_name: str, log: str = None):
 
                         # if is_updating(last_sent) and c == b'\n':
                         #     continue
-                        if is_updating(building):
-                            building = b"\r" + building.replace(b"\r\n", b"")
+
+                        if depth == 0:
+                            if is_updating(building):
+                                building = b"\r" + building.replace(b"\r\n", b"")
 
                         sys.stderr.buffer.write(building)
-
                         sys.stderr.buffer.flush()
                         # sys.stderr.write(building.decode())
                         # sys.stderr.flush()
                         # logger.info(f'b={building}')
-                        last_sent = building
+                        # last_sent = building
                         building = b""
 
                     # log_line = c.decode("utf-8")
