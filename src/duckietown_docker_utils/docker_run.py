@@ -376,7 +376,9 @@ def get_developer_volumes(dirname: str = None) -> Dict[str, dict]:
 
             # local = os.path.join(val, local)
             exists = os.path.exists(host)
-            logger.info(f"{exists} {host} -> {guest}")
+            if not exists:
+
+                logger.warning(f"Could not find directory {host} mentioned in {name}")
             if exists:
                 res[host] = {"bind": guest, "mode": "ro"}
 
