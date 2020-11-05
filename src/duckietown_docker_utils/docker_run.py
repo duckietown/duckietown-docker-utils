@@ -346,13 +346,13 @@ def cleanup_children(client, prefix):
         n = container.name
         if n.startswith(prefix):
             msg = f"Will cleanup child container {n}"
-            logger.info(msg)
+            # logger.info(msg)
             try:
-                logger.info(f"stopping {n}")
+                # logger.info(f"stopping {n}")
                 container.stop()
             except:
                 logger.error(traceback.format_exc())
-            logger.info(f"removing {n}")
+            # logger.info(f"removing {n}")
             container.remove()
 
 
@@ -376,6 +376,8 @@ def get_developer_volumes(dirname: str = None) -> Dict[str, dict]:
         with open(name) as f:
             data = f.read()
         contents = yaml.load(data, Loader=yaml.Loader)
+        if not contents:
+            continue
         # assume list
         for entry in contents:
             host = entry["host"]
