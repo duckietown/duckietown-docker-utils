@@ -282,7 +282,7 @@ def should_pull(image_name: str, period: float):
         except sqlite3.OperationalError:
 
             s = random.uniform(0.1, 2)
-            logger.warning(f"db locked, trying again in {s:.1f}s")
+            # logger.warning(f"db locked, trying again in {s:.1f}s")
             time.sleep(s)
 
 
@@ -334,7 +334,7 @@ def should_pull_(image_name: str, period: float) -> bool:
             logger.debug(f"Need to pull {image_name} because passed {int(s)} > {period} seconds.")
             return True
         else:
-            logger.debug(f"No need to pull {image_name}; passed only {int(s)}  < {period} seconds.")
+            # logger.debug(f"No need to pull {image_name}; passed only {int(s)}  < {period} seconds.")
             conn.close()
 
 
