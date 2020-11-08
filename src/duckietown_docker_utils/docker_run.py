@@ -30,7 +30,12 @@ from .constants import (
 )
 from .monitoring import continuously_monitor
 
-__all__ = ["GenericDockerRunOutput", "generic_docker_run", "get_developer_volumes"]
+__all__ = [
+    "GenericDockerRunOutput",
+    "generic_docker_run",
+    "get_developer_volumes",
+    "replace_important_env_vars",
+]
 
 
 def replace_important_env_vars(s: str) -> str:
@@ -227,7 +232,7 @@ def generic_docker_run(
             #  {'Error': None, 'StatusCode': 32
             StatusCode = res["StatusCode"]
             Error = res["Error"]
-            if StatusCode:
+            if StatusCode and Error:
                 logger.error(f"StatusCode: {StatusCode} Error: {Error}")
             else:
                 pass

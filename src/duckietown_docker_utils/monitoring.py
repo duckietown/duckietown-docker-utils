@@ -14,6 +14,11 @@ __all__ = ["continuously_monitor"]
 escape = re.compile("\x1b\[[\d;]*?m")
 
 
+def is_updating(a: bytes) -> bool:
+    possible = [b"pushing", b"pulling", b"%["]
+    return any(a.startswith(_) for _ in possible)
+
+
 def remove_escapes(s):
     return escape.sub("", s)
 
@@ -49,23 +54,12 @@ def continuously_monitor(client, container_name: str, log: str = None):
                     sys.stderr.buffer.write(c)
 
                     f.write(c)
-                    if b"\n" in c or b"\r" in c:
+                    if b"\n" in c:
                         sys.stderr.buffer.flush()
                         f.flush()
-                    #
-                    # log_line = c.decode("utf-8")
-                    # sys.stderr.write(log_line)
-                    # f.write(remove_escapes(log_line))
 
-            # msg = f"Logs saved at {log}"
-            # logger.info(msg)
-
-            # return container.exit_code
             return  # XXX
         try:
-
-            def is_updating(a: bytes):
-                return b"pushing" in a or (b"pulling" in a)
 
             with open(log, "ab") as f:
                 building = b""
@@ -73,8 +67,6 @@ def continuously_monitor(client, container_name: str, log: str = None):
                 for c in container.logs(
                     stdout=True, stderr=True, stream=True, follow=True, since=last_log_timestamp,
                 ):
-                    # logger.info(f'c = {c}')
-
                     f.write(c)
                     f.flush()
 
@@ -82,27 +74,18 @@ def continuously_monitor(client, container_name: str, log: str = None):
 
                     if b"\n" in c:
 
-                        # if is_updating(last_sent) and c == b'\n':
-                        #     continue
-
                         if depth == 0:
                             if is_updating(building):
                                 building = b"\r" + building.replace(b"\r\n", b"")
 
                         sys.stderr.buffer.write(building)
                         sys.stderr.buffer.flush()
-                        # sys.stderr.write(building.decode())
-                        # sys.stderr.flush()
-                        # logger.info(f'b={building}')
-                        # last_sent = building
+
                         building = b""
 
-                    # log_line = c.decode("utf-8")
-                    # sys.stderr.write(log_line)
-                    # f.write(remove_escapes(log_line))
                     last_log_timestamp = datetime.datetime.now()
 
-            time.sleep(3)
+            time.sleep(1)
         except KeyboardInterrupt:
             logger.info("Received CTRL-C. Stopping container...")
             try:
