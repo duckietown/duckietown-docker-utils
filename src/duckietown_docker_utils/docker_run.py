@@ -91,7 +91,9 @@ def generic_docker_run(
     volumes2: Dict[str, dict] = {}
     envs = {}
     for k, default in IMPORTANT_ENVS.items():
-        envs[k] = os.environ.get(k, default)
+        v = os.environ.get(k, default)
+        if v is not None:
+            envs[k] = v
 
     contents = {
         CONFIG_DOCKER_USERNAME: docker_username,
