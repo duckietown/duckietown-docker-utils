@@ -24,6 +24,7 @@ from . import logger
 from .constants import (
     CONFIG_DOCKER_PASSWORD,
     CONFIG_DOCKER_USERNAME,
+    CREDENTIALS_FILE,
     DEPTH_VAR,
     DT1_TOKEN_CONFIG_KEY,
     IMPORTANT_ENVS,
@@ -71,8 +72,7 @@ def generic_docker_run(
     read_only: bool = True,
 ) -> GenericDockerRunOutput:
     image = replace_important_env_vars(image)
-    # logger.debug(f"using image: {image}")
-    # logger.debug(f"development: {development}")
+
     pwd = os.getcwd()
 
     pwd1 = os.path.realpath(pwd)
@@ -85,7 +85,7 @@ def generic_docker_run(
 
         pwd_to_share = pwd
     else:
-        logger.info(f"repo_root = {repo_root}")
+        logger.debug(f"repo_root={repo_root!r} pwd={pwd!r} pwd1={pwd1!r}")
         pwd_to_share = repo_root
 
     volumes2: Dict[str, dict] = {}
@@ -108,7 +108,7 @@ def generic_docker_run(
         # os.makedirs(credentials)
         with open(credentials, "w") as f:
             f.write(json.dumps(contents))
-        guest_credentials = "/credentials"
+        guest_credentials = CREDENTIALS_FILE
         volumes2[credentials] = {"bind": guest_credentials, "mode": "ro"}
 
         uid1 = os.getuid()
