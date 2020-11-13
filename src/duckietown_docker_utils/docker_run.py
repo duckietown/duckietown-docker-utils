@@ -95,6 +95,10 @@ def generic_docker_run(
         if v is not None:
             envs[k] = v
 
+    for k, v in os.environ.items():
+        if k.startswith("DT") and k not in envs:
+            envs[k] = v
+
     contents = {
         CONFIG_DOCKER_USERNAME: docker_username,
         CONFIG_DOCKER_PASSWORD: docker_secret,
@@ -215,7 +219,7 @@ def generic_docker_run(
             detach=detach,
             name=container_name,
         )
-        # logger.error("Parameters:\n%s" % json.dumps(params, indent=4))
+        logger.debug("Parameters:\n%s" % json.dumps(params, indent=4))
         # return
         if detach:
             params["remove"] = False
@@ -385,18 +389,30 @@ def get_developer_volumes(dirname: str = None) -> Dict[str, dict]:
         contents = yaml.load(data, Loader=yaml.Loader)
         if not contents:
             continue
-        # assume list
-        for entry in contents:
-            host = entry["host"]
-            guest = entry["guest"]
-            host = os.path.expandvars(host)
 
+        root0 = contents["root"]
+        root = os.path.expandvars(root0)
+        if "$" in root:
+            msg = f"Unknown env variables in {root0}. Know: {sorted(os.environ)}"
+            raise ValueError(msg)
+
+        res[root] = {"bind": root, "mode": "ro"}
+        # assume list
+        for entry in contents["entries"]:
+            host0 = entry["host"]
+            guest = entry["guest"]
+            host = os.path.expandvars(host0)
+
+            if "$" in host:
+                msg = f"Unknown env variables in {host}. Know: {sorted(os.environ)}"
+                raise ValueError(msg)
             # local = os.path.join(val, local)
             exists = os.path.exists(host)
             if not exists:
-                logger.warning(f"Could not find directory {host} mentioned in {name}")
+                logger.warning(f"Could not find directory {host} mentioned in {name} (resolved to {host0})")
             if exists:
                 res[host] = {"bind": guest, "mode": "ro"}
+                # res[host] = {"bind": guest, "mode": "ro"}
 
     return res
 

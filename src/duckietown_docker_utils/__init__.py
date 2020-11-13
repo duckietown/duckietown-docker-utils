@@ -4,7 +4,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
-logger.info(__version__)
+logger.debug(f"duckietown_docker_utils version {__version__}")
 
 
 from .monitoring import *
