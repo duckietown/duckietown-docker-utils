@@ -19,7 +19,7 @@ from docker.errors import ContainerError, NotFound
 from docker.models.containers import Container
 from progressbar import Bar, ETA, Percentage, ProgressBar
 
-from duckietown_docker_utils.terminal_size import get_screen_columns
+from .terminal_size import get_screen_columns
 from . import logger
 from .constants import (
     CONFIG_DOCKER_PASSWORD,
@@ -157,11 +157,13 @@ def generic_docker_run(
                     dev_volumes[DED] = {"bind": DED, "mode": "ro"}
                     envs["DT_MOUNT"] = "1"
                     envs["DT_ENV_DEVELOPER"] = DED
+
                 else:
                     logger.error(f"could not find {DED}")
 
             volumes2.update(dev_volumes)
 
+            envs["PYTHONPATH"] = "/packages"
         depth = int(os.environ.get(DEPTH_VAR, "0"))
 
         envs[DEPTH_VAR] = str(depth + 1)
@@ -222,7 +224,8 @@ def generic_docker_run(
             detach=detach,
             name=container_name,
         )
-        # logger.debug("Parameters:\n%s" % json.dumps(params, indent=4))
+        if development:
+            logger.debug("Parameters:\n%s" % json.dumps(params, indent=4))
         # return
         if detach:
             params["remove"] = False
