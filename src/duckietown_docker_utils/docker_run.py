@@ -143,6 +143,9 @@ def generic_docker_run(
         gitconfig = os.path.expanduser("~/.gitconfig")
         if os.path.exists(gitconfig):
             shutil.copy(gitconfig, os.path.join(fake_home_host, ".gitconfig"))
+        gitignore = os.path.expanduser("~/.gitignore")
+        if os.path.exists(gitignore):
+            shutil.copy(gitignore, os.path.join(fake_home_host, ".gitignore"))
         if development:
             dev_volumes = get_developer_volumes()
             if not dev_volumes:
@@ -163,7 +166,7 @@ def generic_docker_run(
 
         envs[DEPTH_VAR] = str(depth + 1)
         # envs["PROGRESSBAR_LINE_BREAKS"] = "1"
-        envs["PROGRESSBAR_ENABLE_COLORS"] = "1"
+        # envs["PROGRESSBAR_ENABLE_COLORS"] = "1"
         # if "COLUMNS" in os.environ:
         #     envs["COLUMNS"] = os.environ["COLUMNS"]
         envs["COLUMNS"] = str(get_screen_columns())
@@ -219,7 +222,7 @@ def generic_docker_run(
             detach=detach,
             name=container_name,
         )
-        logger.debug("Parameters:\n%s" % json.dumps(params, indent=4))
+        # logger.debug("Parameters:\n%s" % json.dumps(params, indent=4))
         # return
         if detach:
             params["remove"] = False
