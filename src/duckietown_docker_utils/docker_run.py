@@ -66,11 +66,15 @@ def generic_docker_run(
     shell: bool,
     entrypoint: Optional[str],
     dt1_token: Optional[str],
-    container_name: str,
+    container_name: Optional[str],
     logname: str,
     detach: bool = True,
     read_only: bool = True,
+    working_dir: str = None,
 ) -> GenericDockerRunOutput:
+    if container_name is None:
+
+        container_name = f"cont{random.randint(0, 1000000)}"
     image = replace_important_env_vars(image)
 
     pwd = os.getcwd()
@@ -224,6 +228,8 @@ def generic_docker_run(
             detach=detach,
             name=container_name,
         )
+        if working_dir:
+            params["working_dir"] = working_dir
         if development:
             logger.debug("Parameters:\n%s" % json.dumps(params, indent=4))
         # return
