@@ -71,6 +71,7 @@ def generic_docker_run(
     detach: bool = True,
     read_only: bool = True,
     working_dir: str = None,
+    share_tmp: bool = True,
 ) -> GenericDockerRunOutput:
     if container_name is None:
 
@@ -142,7 +143,8 @@ def generic_docker_run(
         # volumes[f'{fake_home}/.docker'] = f'{home}/.docker', False
         volumes2[pwd_to_share] = {"bind": pwd_to_share, "mode": "ro" if read_only else "rw"}
         volumes2[f"/var/run/docker.sock"] = {"bind": "/var/run/docker.sock", "mode": "rw"}
-        volumes2["/tmp"] = {"bind": "/tmp", "mode": "rw"}
+        if share_tmp:
+            volumes2["/tmp"] = {"bind": "/tmp", "mode": "rw"}
 
         gitconfig = os.path.expanduser("~/.gitconfig")
         if os.path.exists(gitconfig):
