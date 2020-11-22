@@ -23,6 +23,21 @@ def remove_escapes(s):
     return escape.sub("", s)
 
 
+def mkdirs_thread_safe(dst: str) -> None:
+    """Make directories leading to 'dst' if they don't exist yet"""
+    if dst == "" or os.path.exists(dst):
+        return
+    head, _ = os.path.split(dst)
+    if os.sep == ":" and not ":" in head:
+        head += ":"
+    mkdirs_thread_safe(head)
+    try:
+        os.mkdir(dst, 0o777)
+    except OSError as err:
+        if err.errno != 17:  # file exists
+            raise
+
+
 def continuously_monitor(client, container_name: str, log: str = None):
     depth = int(os.environ.get(DEPTH_VAR, "0"))
 
@@ -31,6 +46,9 @@ def continuously_monitor(client, container_name: str, log: str = None):
 
         logger.debug(f"Monitoring container {container_name}; logs at {log}")
     last_log_timestamp = None
+    dn = os.path.dirname(log)
+    mkdirs_thread_safe(dn)
+
     while True:
         try:
             container = client.containers.get(container_name)
