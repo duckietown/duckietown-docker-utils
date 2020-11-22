@@ -19,7 +19,6 @@ from docker.errors import ContainerError, NotFound
 from docker.models.containers import Container
 from progressbar import Bar, ETA, Percentage, ProgressBar
 
-from .terminal_size import get_screen_columns
 from . import logger
 from .constants import (
     CONFIG_DOCKER_PASSWORD,
@@ -30,6 +29,7 @@ from .constants import (
     IMPORTANT_ENVS,
 )
 from .monitoring import continuously_monitor
+from .terminal_size import get_screen_columns
 
 __all__ = [
     "GenericDockerRunOutput",
@@ -74,7 +74,6 @@ def generic_docker_run(
     share_tmp: bool = True,
 ) -> GenericDockerRunOutput:
     if container_name is None:
-
         container_name = f"cont{random.randint(0, 1000000)}"
     image = replace_important_env_vars(image)
 
@@ -117,15 +116,16 @@ def generic_docker_run(
         # os.makedirs(credentials)
         with open(credentials, "w") as f:
             f.write(json.dumps(contents))
-        guest_credentials = CREDENTIALS_FILE
-        volumes2[credentials] = {"bind": guest_credentials, "mode": "ro"}
-
-        uid1 = os.getuid()
 
         if sys.platform == "darwin":
-            flag = ":delegated"
+            additional_mode = ",delegated"
         else:
-            flag = ""
+            additional_mode = ""
+
+        guest_credentials = CREDENTIALS_FILE
+        volumes2[credentials] = {"bind": guest_credentials, "mode": f"ro{additional_mode}"}
+
+        uid1 = os.getuid()
 
         if as_root:
             pass
@@ -135,16 +135,18 @@ def generic_docker_run(
 
             # home = os.path.expanduser("~")
 
-            volumes2[fake_home_host] = {"bind": FAKE_HOME_GUEST, "mode": "rw"}
+            volumes2[fake_home_host] = {"bind": FAKE_HOME_GUEST, "mode": f"rw{additional_mode}"}
             envs["HOME"] = FAKE_HOME_GUEST
 
-        # PWD = "/pwd"
         PWD = pwd1
         # volumes[f'{fake_home}/.docker'] = f'{home}/.docker', False
-        volumes2[pwd_to_share] = {"bind": pwd_to_share, "mode": "ro" if read_only else "rw"}
+        volumes2[pwd_to_share] = {
+            "bind": pwd_to_share,
+            "mode": f"ro{additional_mode}" if read_only else f"rw{additional_mode}",
+        }
         volumes2[f"/var/run/docker.sock"] = {"bind": "/var/run/docker.sock", "mode": "rw"}
         if share_tmp:
-            volumes2["/tmp"] = {"bind": "/tmp", "mode": "rw"}
+            volumes2["/tmp"] = {"bind": "/tmp", "mode": f"rw{additional_mode}"}
         else:
             logger.debug("not sharing /tmp")
 
@@ -162,7 +164,7 @@ def generic_docker_run(
             else:
                 DED = os.environ.get("DT_ENV_DEVELOPER")
                 if os.path.exists(DED):
-                    dev_volumes[DED] = {"bind": DED, "mode": "ro"}
+                    dev_volumes[DED] = {"bind": DED, "mode": f"ro{additional_mode}"}
                     envs["DT_MOUNT"] = "1"
                     envs["DT_ENV_DEVELOPER"] = DED
 
@@ -394,6 +396,11 @@ def get_developer_volumes(dirname: str = None) -> Dict[str, dict]:
     import yaml
     import glob
 
+    if sys.platform == "darwin":
+        additional_mode = ",delegated"
+    else:
+        additional_mode = ""
+
     res = {}
     files = list(glob.glob(os.path.join(dirname, "*.mount.yaml")))
     if not files:
@@ -412,7 +419,7 @@ def get_developer_volumes(dirname: str = None) -> Dict[str, dict]:
             msg = f"Unknown env variables in {root0}. Know: {sorted(os.environ)}"
             raise ValueError(msg)
 
-        res[root] = {"bind": root, "mode": "ro"}
+        res[root] = {"bind": root, "mode": f"ro{additional_mode}"}
         # assume list
         for entry in contents["entries"]:
             host0 = entry["host"]
@@ -427,7 +434,7 @@ def get_developer_volumes(dirname: str = None) -> Dict[str, dict]:
             if not exists:
                 logger.warning(f"Could not find directory {host} mentioned in {name} (resolved to {host0})")
             if exists:
-                res[host] = {"bind": guest, "mode": "ro"}
+                res[host] = {"bind": guest, "mode": f"ro{additional_mode}"}
                 # res[host] = {"bind": guest, "mode": "ro"}
 
     return res
