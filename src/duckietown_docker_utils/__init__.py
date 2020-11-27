@@ -4,8 +4,11 @@ import logging
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
-logger.debug(f"duckietown_docker_utils version {__version__} path {__file__}")
+import os
 
+path = os.path.dirname(os.path.dirname(__file__))
+
+logger.debug(f"duckietown_docker_utils version {__version__} path {path}")
 
 from .monitoring import *
 from .docker_run import *
