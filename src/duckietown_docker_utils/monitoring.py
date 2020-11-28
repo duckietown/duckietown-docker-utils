@@ -50,9 +50,10 @@ def continuously_monitor(client, container_name: str, log: str = None):
     mkdirs_thread_safe(dn)
 
     while True:
+        # noinspection PyBroadException
         try:
             container = client.containers.get(container_name)
-        except Exception as e:
+        except Exception:
             # msg = 'Cannot get container %s: %s' % (container_name, e)
             # logger.info(msg)
             break
@@ -77,6 +78,7 @@ def continuously_monitor(client, container_name: str, log: str = None):
                         f.flush()
 
             return  # XXX
+        # noinspection PyBroadException
         try:
 
             with open(log, "ab") as f:
@@ -114,7 +116,7 @@ def continuously_monitor(client, container_name: str, log: str = None):
                 logger.info(f"Container {container_name} removed.")
             except NotFound:
                 pass
-            except APIError as e:
+            except APIError:
                 # if e.errno == 409:
                 #
                 pass

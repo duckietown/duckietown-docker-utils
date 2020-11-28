@@ -30,6 +30,7 @@ def getTerminalSize() -> Tuple[int, int]:
     """
     cr = ioctl_GWINSZ(0) or ioctl_GWINSZ(1) or ioctl_GWINSZ(2)
     if not cr:
+        # noinspection PyBroadException
         try:
             fd = os.open(os.ctermid(), os.O_RDONLY)
             cr = ioctl_GWINSZ(fd)
@@ -51,11 +52,13 @@ def getTerminalSize() -> Tuple[int, int]:
 
 
 def ioctl_GWINSZ(fd):
+    # noinspection PyBroadException
     try:
         import fcntl
         import termios
         import struct
 
+        # noinspection PyTypeChecker
         s = fcntl.ioctl(fd, termios.TIOCGWINSZ, "1234")
         return struct.unpack("hh", s)
     except:

@@ -82,10 +82,11 @@ def generic_docker_run(
     pwd1 = os.path.realpath(pwd)
     user = getpass.getuser()
 
+    # noinspection PyBroadException
     try:
         repo_root = subprocess.check_output(["git", "rev-parse", "--show-toplevel"]).decode().strip()
-    except Exception as e:
-        msg = f"Cannot get repo_root from {pwd1}: \n{e}"
+    except Exception:
+        # msg = f"Cannot get repo_root from {pwd1}: \n{e}"
 
         pwd_to_share = pwd
     else:
@@ -191,7 +192,7 @@ def generic_docker_run(
             if do_it:
                 pull_image(client, image, progress=True)
 
-        #
+        # noinspection PyBroadException
         try:
             container = client.containers.get(container_name)
         except:
@@ -330,7 +331,8 @@ def should_pull_(image_name: str, period: float) -> bool:
             """
     c.execute(sql)
     conn.commit()
-    sql = """
+    sql = """-- noinspection SqlResolveForFile
+
         select last_pull from pulls where image_name = ?
     """
     c.execute(sql, (image_name,))
@@ -338,7 +340,7 @@ def should_pull_(image_name: str, period: float) -> bool:
     n = datetime.datetime.now()
 
     if not data:
-        sql = """
+        sql = """-- noinspection SqlResolveForFile
                 insert into pulls (image_name, last_pull) values (?, ?);
             """
         c.execute(sql, (image_name, n))
@@ -353,7 +355,7 @@ def should_pull_(image_name: str, period: float) -> bool:
         diff = n - datelast
         s = diff.total_seconds()
         if s > period:
-            sql = """
+            sql = """-- noinspection SqlResolveForFile
                 update  pulls set last_pull = ? where image_name = ?;
             """
             c.execute(sql, (n, image_name))
@@ -374,8 +376,9 @@ def cleanup_children(client, prefix):
     for container in containers:
         n = container.name
         if n.startswith(prefix):
-            msg = f"Will cleanup child container {n}"
+            # msg = f"Will cleanup child container {n}"
             # logger.info(msg)
+            # noinspection PyBroadException
             try:
                 # logger.info(f"stopping {n}")
                 container.stop()
