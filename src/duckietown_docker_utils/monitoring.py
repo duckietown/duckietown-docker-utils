@@ -69,7 +69,9 @@ def continuously_monitor(client, container_name: str, log: str = None):
             with open(log, "ab") as f:
                 for c in container.logs(stdout=True, stderr=True, stream=True, since=last_log_timestamp):
                     # last_log_timestamp = datetime.datetime.now()
-
+                    # XXX: not sure why this is needed
+                    if isinstance(c, str):
+                        c = c.encode()
                     sys.stderr.buffer.write(c)
 
                     f.write(c)
@@ -87,6 +89,9 @@ def continuously_monitor(client, container_name: str, log: str = None):
                 for c in container.logs(
                     stdout=True, stderr=True, stream=True, follow=True, since=last_log_timestamp,
                 ):
+                    # XXX: not sure why this is needed
+                    if isinstance(c, str):
+                        c = c.encode()
                     f.write(c)
                     f.flush()
 
