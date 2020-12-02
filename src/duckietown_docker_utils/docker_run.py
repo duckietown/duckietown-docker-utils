@@ -100,8 +100,12 @@ def generic_docker_run(
         if v is not None:
             envs[k] = v
 
+    def include(x: str) -> bool:
+        return x.startswith("DT") or "TWINE" in x
+
     for k, v in os.environ.items():
-        if k.startswith("DT") and k not in envs:
+
+        if include(k) and k not in envs:
             envs[k] = v
 
     contents = {
