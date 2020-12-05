@@ -161,6 +161,9 @@ def generic_docker_run(
         gitignore = os.path.expanduser("~/.gitignore")
         if os.path.exists(gitignore):
             shutil.copy(gitignore, os.path.join(fake_home_host, ".gitignore"))
+        gitignore = os.path.expanduser("~/.pypirc")
+        if os.path.exists(gitignore):
+            shutil.copy(gitignore, os.path.join(fake_home_host, ".pypirc"))
         if development:
             dev_volumes = get_developer_volumes()
             if not dev_volumes:
