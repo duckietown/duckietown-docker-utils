@@ -149,7 +149,14 @@ def generic_docker_run(
             "bind": pwd_to_share,
             "mode": f"ro{additional_mode}" if read_only else f"rw{additional_mode}",
         }
-        volumes2[f"/var/run/docker.sock"] = {"bind": "/var/run/docker.sock", "mode": "rw"}
+        on_mac = "Darwin" in platform.system()
+        # logger.debug(f' {platform.system()} {on_mac}')
+
+        if on_mac:
+
+            volumes2[f"/var/run/docker.sock.raw"] = {"bind": "/var/run/docker.sock", "mode": "rw"}
+        else:
+            volumes2[f"/var/run/docker.sock"] = {"bind": "/var/run/docker.sock", "mode": "rw"}
         if share_tmp:
             volumes2["/tmp"] = {"bind": "/tmp", "mode": f"rw{additional_mode}"}
         else:
@@ -213,7 +220,7 @@ def generic_docker_run(
         # logger.info(f"Starting container {container_name} with {image}")
 
         # add all the groups
-        on_mac = "Darwin" in platform.system()
+
         if on_mac:
             group_add = []
         else:
