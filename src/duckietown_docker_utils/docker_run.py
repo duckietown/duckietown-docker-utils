@@ -21,6 +21,7 @@ from progressbar import Bar, ETA, Percentage, ProgressBar
 
 from . import logger
 from .constants import (
+    CONFIG_DOCKER_CREDENTIALS,
     CONFIG_DOCKER_PASSWORD,
     CONFIG_DOCKER_USERNAME,
     CREDENTIALS_FILE,
@@ -68,6 +69,7 @@ def generic_docker_run(
     dt1_token: Optional[str],
     container_name: Optional[str],
     logname: str,
+    docker_credentials: Dict[str, Dict[str, str]] = None,
     detach: bool = True,
     read_only: bool = True,
     working_dir: str = None,
@@ -112,6 +114,7 @@ def generic_docker_run(
         CONFIG_DOCKER_USERNAME: docker_username,
         CONFIG_DOCKER_PASSWORD: docker_secret,
         DT1_TOKEN_CONFIG_KEY: dt1_token,
+        CONFIG_DOCKER_CREDENTIALS: docker_credentials,
     }
     FAKE_HOME_GUEST = "/fake-home"
     with TemporaryDirectory() as tmpdir:
@@ -153,7 +156,6 @@ def generic_docker_run(
         # logger.debug(f' {platform.system()} {on_mac}')
 
         if on_mac:
-
             volumes2[f"/var/run/docker.sock.raw"] = {"bind": "/var/run/docker.sock", "mode": "rw"}
         else:
             volumes2[f"/var/run/docker.sock"] = {"bind": "/var/run/docker.sock", "mode": "rw"}
@@ -162,15 +164,26 @@ def generic_docker_run(
         else:
             logger.debug("not sharing /tmp")
 
-        gitconfig = os.path.expanduser("~/.gitconfig")
-        if os.path.exists(gitconfig):
-            shutil.copy(gitconfig, os.path.join(fake_home_host, ".gitconfig"))
-        gitignore = os.path.expanduser("~/.gitignore")
-        if os.path.exists(gitignore):
-            shutil.copy(gitignore, os.path.join(fake_home_host, ".gitignore"))
-        gitignore = os.path.expanduser("~/.pypirc")
-        if os.path.exists(gitignore):
-            shutil.copy(gitignore, os.path.join(fake_home_host, ".pypirc"))
+        files = [
+            "~/.gitconfig",
+            "~/.gitignore",
+            "~/.pypirc",
+            "~/.dt-shell",
+        ]
+
+        for f in files:
+            fe = os.path.expanduser(f)
+            if os.path.exists(fe):
+                fd = f.replace("~", fake_home_host)
+                d0 = os.path.dirname(fd)
+                if not os.path.exists(d0):
+                    os.makedirs(d0)
+                logger.debug(f"{fe} -> {fd}")
+                if os.path.isdir(fe):
+                    shutil.copytree(fe, fd)
+                else:
+                    shutil.copy(fe, fd)
+
         if development:
             dev_volumes = get_developer_volumes()
             if not dev_volumes:

@@ -1,5 +1,6 @@
 DT1_TOKEN_CONFIG_KEY = "token_dt1"
 CONFIG_DOCKER_USERNAME = "docker_username"
+CONFIG_DOCKER_CREDENTIALS = "docker_credentials"
 CONFIG_DUCKIETOWN_VERSION = "duckietown_version"
 
 CONFIG_DOCKER_PASSWORD = "docker_password"
