@@ -153,7 +153,6 @@ def generic_docker_run(
             "mode": f"ro{additional_mode}" if read_only else f"rw{additional_mode}",
         }
         on_mac = "Darwin" in platform.system()
-        # logger.debug(f' {platform.system()} {on_mac}')
 
         if on_mac:
             volumes2[f"/var/run/docker.sock.raw"] = {"bind": "/var/run/docker.sock", "mode": "rw"}
@@ -171,6 +170,8 @@ def generic_docker_run(
             "~/.dt-shell",
         ]
 
+        if "DT_DOCKER_BUILD_HOST" in os.environ:
+            files.append("~/.ssh")
         for f in files:
             fe = os.path.expanduser(f)
             if os.path.exists(fe):
