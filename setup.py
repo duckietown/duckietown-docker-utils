@@ -30,5 +30,5 @@ setup(
     package_dir={"": "src"},
     packages=["duckietown_docker_utils"],
     install_requires=install_requires,
-    entry_points={"console_scripts": ["dt-docker-push=duckietown_docker_utils.dt_push:dt_push_main",],},
+    entry_points={"console_scripts": ["dt-docker-run=duckietown_docker_utils:dt_docker_run_main",],},
 )

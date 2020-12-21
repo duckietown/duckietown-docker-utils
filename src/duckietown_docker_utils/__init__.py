@@ -13,3 +13,4 @@ logger.debug(f"duckietown_docker_utils version {__version__} path {path}")
 from .monitoring import *
 from .docker_run import *
 from .constants import *
+from .cli import *

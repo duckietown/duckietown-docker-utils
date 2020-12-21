@@ -255,7 +255,6 @@ def generic_docker_run(
             user=f"{uid1}",
             group_add=group_add,
             command=commands,
-            entrypoint=entrypoint,
             tty=interactive,
             volumes=volumes2,
             environment=envs,
@@ -263,6 +262,8 @@ def generic_docker_run(
             detach=detach,
             name=container_name,
         )
+        if entrypoint is not None:
+            params["entrypoint"] = entrypoint
         if working_dir:
             params["working_dir"] = working_dir
         if development:
