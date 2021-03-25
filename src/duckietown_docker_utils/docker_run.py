@@ -346,7 +346,9 @@ def should_pull(image_name: str, period: float):
 
 
 def should_pull_(image_name: str, period: float) -> bool:
-    fn = "/tmp/pulls.sqlite"
+
+    fn = "~/.pulls.sqlite"
+    fn = os.path.expanduser(fn)
     conn = sqlite3.connect(fn)
     c = conn.cursor()
 

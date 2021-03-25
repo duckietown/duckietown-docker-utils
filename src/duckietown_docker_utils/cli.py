@@ -1,6 +1,5 @@
 import argparse
 import sys
-import time
 
 from docker import DockerClient
 
