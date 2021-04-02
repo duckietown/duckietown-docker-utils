@@ -19,7 +19,7 @@ def get_version(filename: str):
 
 version = get_version(filename="src/duckietown_docker_utils/__init__.py")
 
-install_requires = ["requirements-parser", "packaging", "pytz", "whichcraft", "progressbar"]
+install_requires = ["progressbar"]
 
 line = "daffy"
 
