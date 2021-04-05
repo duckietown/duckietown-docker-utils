@@ -168,6 +168,7 @@ def generic_docker_run(
             "~/.gitignore",
             "~/.pypirc",
             "~/.dt-shell",
+            "~/.docker-caching.sqlite",
         ]
 
         if "DT_DOCKER_BUILD_HOST" in os.environ:
