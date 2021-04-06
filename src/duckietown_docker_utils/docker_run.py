@@ -168,8 +168,11 @@ def generic_docker_run(
             "~/.gitignore",
             "~/.pypirc",
             "~/.dt-shell",
-            "~/.docker-caching.sqlite",
+            "~/.dt-caches",
         ]
+        f2 = os.path.expanduser("~/.dt-caches")
+        if not os.path.exists(f2):
+            os.makedirs(f2)
 
         if "DT_DOCKER_BUILD_HOST" in os.environ:
             files.append("~/.ssh")
@@ -348,7 +351,7 @@ def should_pull(image_name: str, period: float):
 
 def should_pull_(image_name: str, period: float) -> bool:
 
-    fn = "~/.pulls.sqlite"
+    fn = "~/.dt-caches/pulls.sqlite"
     fn = os.path.expanduser(fn)
     conn = sqlite3.connect(fn)
     c = conn.cursor()
