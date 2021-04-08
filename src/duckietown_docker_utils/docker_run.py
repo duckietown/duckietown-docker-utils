@@ -160,6 +160,10 @@ def generic_docker_run(
             volumes2[f"/var/run/docker.sock"] = {"bind": "/var/run/docker.sock", "mode": "rw"}
         if share_tmp:
             volumes2["/tmp"] = {"bind": "/tmp", "mode": f"rw{additional_mode}"}
+            f2 = os.path.expanduser("~/.dt-caches")
+            if not os.path.exists(f2):
+                os.makedirs(f2)
+            volumes2[f2] = {"bind": f"{FAKE_HOME_GUEST}/.dt-caches", "mode": f"rw{additional_mode}"}
         else:
             logger.debug("not sharing /tmp")
 
@@ -168,11 +172,7 @@ def generic_docker_run(
             "~/.gitignore",
             "~/.pypirc",
             "~/.dt-shell",
-            "~/.dt-caches",
         ]
-        f2 = os.path.expanduser("~/.dt-caches")
-        if not os.path.exists(f2):
-            os.makedirs(f2)
 
         if "DT_DOCKER_BUILD_HOST" in os.environ:
             files.append("~/.ssh")
