@@ -1,4 +1,4 @@
-__version__ = "6.0.82"
+__version__ = "6.0.83"
 
 import logging
 
