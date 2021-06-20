@@ -10,6 +10,8 @@ ENV_REGISTRY = "AIDO_REGISTRY"
 ENV_IGNORE_DIRTY = "DT_IGNORE_DIRTY"
 ENV_IGNORE_UNTAGGED = "DT_IGNORE_UNTAGGED"
 
+ENV_DT_BUILD_HOST = "DT_DOCKER_BUILD_HOST"
+
 # These are passed to the called container.
 # If the value is None, no variable is passed if one is not present.
 IMPORTANT_ENVS = {

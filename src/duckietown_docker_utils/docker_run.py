@@ -27,6 +27,7 @@ from .constants import (
     CREDENTIALS_FILE,
     DEPTH_VAR,
     DT1_TOKEN_CONFIG_KEY,
+    ENV_DT_BUILD_HOST,
     IMPORTANT_ENVS,
 )
 from .monitoring import continuously_monitor
@@ -174,7 +175,7 @@ def generic_docker_run(
             "~/.dt-shell",
         ]
 
-        if "DT_DOCKER_BUILD_HOST" in os.environ:
+        if ENV_DT_BUILD_HOST in os.environ:
             files.append("~/.ssh")
         for f in files:
             fe = os.path.expanduser(f)
@@ -349,18 +350,26 @@ def should_pull(image_name: str, period: float):
             time.sleep(s)
 
 
-def should_pull_(image_name: str, period: float) -> bool:
+def get_host_string() -> str:
+    host = os.environ.get("DOCKER_HOST", "local")
+    return host
 
+
+def should_pull_(image_name: str, period: float) -> bool:
     fn = "~/.dt-caches/pulls.sqlite"
     fn = os.path.expanduser(fn)
     conn = sqlite3.connect(fn)
     c = conn.cursor()
+    host = get_host_string()
 
     sql = """
 
         CREATE TABLE IF NOT EXISTS pulls (
-            image_name text not null primary key,
-            last_pull timestamp  not null
+            host text not null,
+            image_name text not null,
+            last_pull timestamp  not null,
+
+            UNIQUE (host, image_name)
         );
 
             """
@@ -368,17 +377,17 @@ def should_pull_(image_name: str, period: float) -> bool:
     conn.commit()
     sql = """-- noinspection SqlResolveForFile
 
-        select last_pull from pulls where image_name = ?
+        select last_pull from pulls where image_name = ? and host = ?
     """
-    c.execute(sql, (image_name,))
+    c.execute(sql, (image_name, host))
     data = c.fetchone()
     n = datetime.datetime.now()
 
     if not data:
         sql = """-- noinspection SqlResolveForFile
-                insert into pulls (image_name, last_pull) values (?, ?);
+                insert into pulls (host, image_name, last_pull) values (?, ?, ?);
             """
-        c.execute(sql, (image_name, n))
+        c.execute(sql, (host, image_name, n))
         conn.commit()
         conn.close()
         return True
@@ -391,9 +400,9 @@ def should_pull_(image_name: str, period: float) -> bool:
         s = diff.total_seconds()
         if s > period:
             sql = """-- noinspection SqlResolveForFile
-                update  pulls set last_pull = ? where image_name = ?;
+                update pulls set last_pull = ? where host = ? and image_name = ?;
             """
-            c.execute(sql, (n, image_name))
+            c.execute(sql, (n, host, image_name))
             conn.commit()
             conn.close()
 
