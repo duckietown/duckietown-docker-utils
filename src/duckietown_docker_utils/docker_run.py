@@ -356,7 +356,7 @@ def get_host_string() -> str:
 
 
 def should_pull_(image_name: str, period: float) -> bool:
-    fn = "~/.dt-caches/pulls.sqlite"
+    fn = "~/.dt-caches/pulls2.sqlite"
     fn = os.path.expanduser(fn)
     conn = sqlite3.connect(fn)
     c = conn.cursor()
