@@ -19,7 +19,7 @@ def get_version(filename: str):
 
 version = get_version(filename="src/duckietown_docker_utils/__init__.py")
 
-install_requires = ["progressbar"]
+install_requires = ["progressbar2"]
 
 line = "daffy"
 
@@ -30,5 +30,9 @@ setup(
     package_dir={"": "src"},
     packages=["duckietown_docker_utils"],
     install_requires=install_requires,
-    entry_points={"console_scripts": ["dt-docker-run=duckietown_docker_utils:dt_docker_run_main",],},
+    entry_points={
+        "console_scripts": [
+            "dt-docker-run=duckietown_docker_utils:dt_docker_run_main",
+        ],
+    },
 )
