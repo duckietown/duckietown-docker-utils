@@ -10,7 +10,7 @@ bump: # v2
 upload: # v3
 	dts build_utils check-not-dirty
 	dts build_utils check-tagged
-	dts build_utils check-need-upload --package duckietown-docker-utils-daffy make upload-do
+	dts build_utils check-need-upload --package duckietown-docker-utils-ente make upload-do
 
 upload-do:
 	rm -f dist/*

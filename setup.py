@@ -21,7 +21,7 @@ version = get_version(filename="src/duckietown_docker_utils/__init__.py")
 
 install_requires = ["progressbar2"]
 
-line = "daffy"
+line = "ente"
 
 setup(
     name=f"duckietown-docker-utils-{line}",
