@@ -24,7 +24,7 @@ jobs:
       COVER_PACKAGES: duckietown_docker_utils,duckietown_docker_utils_tests
       TEST_PACKAGES: duckietown_docker_utils_tests
     docker:
-    - image: $DOCKER_REGISTRY/circle/python:3.8
+    - image: $DOCKER_REGISTRY/circleci/python:3.8
       auth:
         username: $DOCKER_USERNAME
         password: $DOCKER_PASSWORD
@@ -152,7 +152,7 @@ jobs:
       COVER_PACKAGES: duckietown_docker_utils,duckietown_docker_utils_tests
       TEST_PACKAGES: duckietown_docker_utils_tests
     docker:
-    - image: $DOCKER_REGISTRY/circle/python:3.8
+    - image: $DOCKER_REGISTRY/circleci/python:3.8
       auth:
         username: $DOCKER_USERNAME
         password: $DOCKER_PASSWORD
@@ -273,4 +273,4 @@ jobs:
           bash <(curl -s https://codecov.io/bash)
     resource_class: medium
 
-# sigil ce1cab75129106758299c6d765bf75c6
+# sigil c3d84ff33960926e10c85b8d7efd7f64
