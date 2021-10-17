@@ -20,7 +20,7 @@ jobs:
     environment:
       COLUMNS: '160'
       # default is /usr/local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
-      PATH: /root/.local/bin:/usr/local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+      PATH: /home/circleci/.local/bin:/root/.local/bin:/usr/local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
       COVER_PACKAGES: duckietown_docker_utils,duckietown_docker_utils_tests
       TEST_PACKAGES: duckietown_docker_utils_tests
     docker:
@@ -43,7 +43,7 @@ jobs:
     - run:
         name: Install testing deps
         command: |
-          python3 -m pip install nose coverage
+          python3 -m pip install nose coverage pipdeptree
 
     - run:
         name: Python stats
@@ -147,7 +147,7 @@ jobs:
     environment:
       COLUMNS: '160'
       # default is /usr/local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
-      PATH: /root/.local/bin:/usr/local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+      PATH: /home/circleci/.local/bin:/root/.local/bin:/usr/local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
       COVER_PACKAGES: duckietown_docker_utils,duckietown_docker_utils_tests
       TEST_PACKAGES: duckietown_docker_utils_tests
     docker:
@@ -170,7 +170,7 @@ jobs:
     - run:
         name: Install testing deps
         command: |
-          python3 -m pip install nose coverage
+          python3 -m pip install nose coverage pipdeptree
 
     - run:
         name: Python stats
@@ -271,4 +271,4 @@ jobs:
           bash <(curl -s https://codecov.io/bash)
     resource_class: medium
 
-# sigil 1231d4379ffe5a5fe5a6055d107dc175
+# sigil fa35560b69509519eebc2feff81480c8
