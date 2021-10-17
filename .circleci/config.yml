@@ -43,7 +43,7 @@ jobs:
     - run:
         name: Install testing deps
         command: |
-          python3 -m pip install nose coverage pipdeptree
+          python3 -m pip install nose coverage pipdeptree rednose
 
     - run:
         name: Python stats
@@ -170,7 +170,7 @@ jobs:
     - run:
         name: Install testing deps
         command: |
-          python3 -m pip install nose coverage pipdeptree
+          python3 -m pip install nose coverage pipdeptree rednose
 
     - run:
         name: Python stats
@@ -271,4 +271,4 @@ jobs:
           bash <(curl -s https://codecov.io/bash)
     resource_class: medium
 
-# sigil fa35560b69509519eebc2feff81480c8
+# sigil ffee688fbf62de828b36b493b9614022
