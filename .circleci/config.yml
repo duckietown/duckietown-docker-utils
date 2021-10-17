@@ -43,7 +43,6 @@ jobs:
     - run:
         name: Install testing deps
         command: |
-          shyaml get-values tests_require < project.pp1.yaml > .requirements_tests.txt
           python3 -m pip install nose coverage
 
     - run:
@@ -171,7 +170,6 @@ jobs:
     - run:
         name: Install testing deps
         command: |
-          shyaml get-values tests_require < project.pp1.yaml > .requirements_tests.txt
           python3 -m pip install nose coverage
 
     - run:
@@ -273,4 +271,4 @@ jobs:
           bash <(curl -s https://codecov.io/bash)
     resource_class: medium
 
-# sigil c3d84ff33960926e10c85b8d7efd7f64
+# sigil 1231d4379ffe5a5fe5a6055d107dc175
