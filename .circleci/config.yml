@@ -39,19 +39,12 @@ jobs:
     - store_artifacts:
         path: build-stats
         destination: build-stats
-    - run:
-        name: Install deps
-        command: |
-          shyaml get-values install_requires < project.pp1.yaml > .requirements.txt
-          pip3 install  -r .requirements.txt
-          rm .requirements.txt
 
     - run:
         name: Install testing deps
         command: |
           shyaml get-values tests_require < project.pp1.yaml > .requirements_tests.txt
-          pip3 install -r .requirements_tests.txt
-          rm .requirements_tests.txt
+          python3 -m pip install nose coverage
 
     - run:
         name: Python stats
@@ -65,22 +58,22 @@ jobs:
         destination: build-stats
 
     - run:
-        name: setup.py develop
+        name: install
         command: |
-          python setup.py develop --prefix ~/.local --no-deps
+          python3 -m pip install -e . --user
 
-    - run:
-        name: Make docs
-        command: |
-          FILE=src/conf.py
-          mkdir -p out/docs
-          if test -f "$FILE"; then
-              sphinx-build src out/docs
-          fi
-
-    - store_artifacts:
-        path: out/docs
-        destination: docs
+#    - run:
+#        name: Make docs
+#        command: |
+#          FILE=src/conf.py
+#          mkdir -p out/docs
+#          if test -f "$FILE"; then
+#              sphinx-build src out/docs
+#          fi
+#
+#    - store_artifacts:
+#        path: out/docs
+#        destination: docs
     - run:
         background: true
         name: services
@@ -100,12 +93,6 @@ jobs:
           else
               echo "Target $TARGET not defined"
           fi
-
-
-    # - run:
-    #     name: Notebooks
-    #     command: |
-    #       make -C notebooks cleanup all
 
 
     - run:
@@ -167,19 +154,12 @@ jobs:
     - store_artifacts:
         path: build-stats
         destination: build-stats
-    - run:
-        name: Install deps
-        command: |
-          shyaml get-values install_requires < project.pp1.yaml > .requirements.txt
-          pip3 install  -r .requirements.txt
-          rm .requirements.txt
 
     - run:
         name: Install testing deps
         command: |
           shyaml get-values tests_require < project.pp1.yaml > .requirements_tests.txt
-          pip3 install -r .requirements_tests.txt
-          rm .requirements_tests.txt
+          python3 -m pip install nose coverage
 
     - run:
         name: Python stats
@@ -193,22 +173,22 @@ jobs:
         destination: build-stats
 
     - run:
-        name: setup.py develop
+        name: install
         command: |
-          python setup.py develop --prefix ~/.local --no-deps
+          python3 -m pip install -e . --user
 
-    - run:
-        name: Make docs
-        command: |
-          FILE=src/conf.py
-          mkdir -p out/docs
-          if test -f "$FILE"; then
-              sphinx-build src out/docs
-          fi
-
-    - store_artifacts:
-        path: out/docs
-        destination: docs
+#    - run:
+#        name: Make docs
+#        command: |
+#          FILE=src/conf.py
+#          mkdir -p out/docs
+#          if test -f "$FILE"; then
+#              sphinx-build src out/docs
+#          fi
+#
+#    - store_artifacts:
+#        path: out/docs
+#        destination: docs
     - run:
         background: true
         name: services
@@ -228,12 +208,6 @@ jobs:
           else
               echo "Target $TARGET not defined"
           fi
-
-
-    # - run:
-    #     name: Notebooks
-    #     command: |
-    #       make -C notebooks cleanup all
 
 
     - run:
@@ -273,4 +247,4 @@ jobs:
           bash <(curl -s https://codecov.io/bash)
     resource_class: medium
 
-# sigil a616a0eb450aadc6a97e0ee3438242b7
+# sigil 33bbffdbfe599d2418b76cfe9b0f6bf5
