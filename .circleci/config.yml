@@ -21,8 +21,8 @@ jobs:
       COLUMNS: '160'
       # default is /usr/local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
       PATH: /root/.local/bin:/usr/local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
-      COVER_PACKAGES: duckietown_docker_utils
-      TEST_PACKAGES: ''
+      COVER_PACKAGES: duckietown_docker_utils,duckietown_docker_utils_tests
+      TEST_PACKAGES: duckietown_docker_utils_tests
     docker:
     - image: circle/python:3.8
       auth:
@@ -95,6 +95,19 @@ jobs:
           fi
 
 
+    - run:
+        name: duckietown_docker_utils_tests
+        command: |-
+          set -euxo pipefail
+          mkdir -p out/test-results
+          xunit_output=$PWD/out/test-results/nose-${CIRCLE_NODE_INDEX}-duckietown_docker_utils_tests-xunit.xml
+          nosetests \
+              --rednose --immediate \
+              --cover-tests --with-coverage \
+              --with-xunit --xunit-file=${xunit_output} \
+              --cover-package=${COVER_PACKAGES} \
+              duckietown_docker_utils_tests
+        when: always
     - run:
         name: post-circle-tests
         command: |
@@ -136,8 +149,8 @@ jobs:
       COLUMNS: '160'
       # default is /usr/local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
       PATH: /root/.local/bin:/usr/local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
-      COVER_PACKAGES: duckietown_docker_utils
-      TEST_PACKAGES: ''
+      COVER_PACKAGES: duckietown_docker_utils,duckietown_docker_utils_tests
+      TEST_PACKAGES: duckietown_docker_utils_tests
     docker:
     - image: circle/python:3.8
       auth:
@@ -211,6 +224,19 @@ jobs:
 
 
     - run:
+        name: duckietown_docker_utils_tests
+        command: |-
+          set -euxo pipefail
+          mkdir -p out/test-results
+          xunit_output=$PWD/out/test-results/nose-${CIRCLE_NODE_INDEX}-duckietown_docker_utils_tests-xunit.xml
+          nosetests \
+              --rednose --immediate \
+              --cover-tests --with-coverage \
+              --with-xunit --xunit-file=${xunit_output} \
+              --cover-package=${COVER_PACKAGES} \
+              duckietown_docker_utils_tests
+        when: always
+    - run:
         name: post-circle-tests
         command: |
           TARGET=post-circle-tests
@@ -247,4 +273,4 @@ jobs:
           bash <(curl -s https://codecov.io/bash)
     resource_class: medium
 
-# sigil b02bf5fe3d18d01cd6cccba8c3c3b29a
+# sigil bb629e6bf3f2f69d30f97df8e137f782
