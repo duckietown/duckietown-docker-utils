@@ -24,7 +24,7 @@ jobs:
       COVER_PACKAGES: duckietown_docker_utils
       TEST_PACKAGES: ''
     docker:
-    - image: ${DOCKER_REGISTRY}/zupermind/zuper-ci-3.8:z7
+    - image: circle/python:3.8
       auth:
         username: $DOCKER_USERNAME
         password: $DOCKER_PASSWORD
@@ -139,7 +139,7 @@ jobs:
       COVER_PACKAGES: duckietown_docker_utils
       TEST_PACKAGES: ''
     docker:
-    - image: ${DOCKER_REGISTRY}/zupermind/zuper-ci-3.8:z7
+    - image: circle/python:3.8
       auth:
         username: $DOCKER_USERNAME
         password: $DOCKER_PASSWORD
@@ -247,4 +247,4 @@ jobs:
           bash <(curl -s https://codecov.io/bash)
     resource_class: medium
 
-# sigil 33bbffdbfe599d2418b76cfe9b0f6bf5
+# sigil b02bf5fe3d18d01cd6cccba8c3c3b29a
