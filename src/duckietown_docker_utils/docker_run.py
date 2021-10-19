@@ -78,6 +78,7 @@ def generic_docker_run(
     read_only: bool = True,
     working_dir: str = None,
     share_tmp: bool = True,
+    volumes_from: List[str] = None,
 ) -> GenericDockerRunOutput:
     if container_name is None:
         container_name = f"cont{random.randint(0, 1000000)}"
@@ -153,11 +154,13 @@ def generic_docker_run(
             envs["HOME"] = FAKE_HOME_GUEST
 
         PWD = pwd1
-        # volumes[f'{fake_home}/.docker'] = f'{home}/.docker', False
-        volumes2[pwd_to_share] = {
-            "bind": pwd_to_share,
-            "mode": f"ro{additional_mode}" if read_only else f"rw{additional_mode}",
-        }
+
+        if not volumes_from:
+            # volumes[f'{fake_home}/.docker'] = f'{home}/.docker', False
+            volumes2[pwd_to_share] = {
+                "bind": pwd_to_share,
+                "mode": f"ro{additional_mode}" if read_only else f"rw{additional_mode}",
+            }
         on_mac = "Darwin" in platform.system()
 
         if on_mac:
@@ -271,6 +274,7 @@ def generic_docker_run(
             network_mode="host",
             detach=detach,
             name=container_name,
+            volumes_from=volumes_from,
         )
         if entrypoint is not None:
             params["entrypoint"] = entrypoint
