@@ -102,6 +102,9 @@ def generic_docker_run(
 
     volumes2: Dict[str, dict] = {}
     envs = {}
+
+    if "DOCKER_HOST" in os.environ:
+        envs["DOCKER_HOST"] = os.environ["DOCKER_HOST"]
     for k, default in IMPORTANT_ENVS.items():
         v = os.environ.get(k, default)
         if v is not None:
