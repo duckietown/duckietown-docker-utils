@@ -139,6 +139,8 @@ def generic_docker_run(
 
         uid1 = os.getuid()
 
+        envs["CREDENTIALS"] = json.dumps(contents)
+
         if as_root:
             pass
         else:
