@@ -46,8 +46,6 @@ jobs:
           python3 -m pip install -U pip
           python3 -m pip install nose coverage pipdeptree rednose
 
-
-
     - run:
         name: install
         command: |

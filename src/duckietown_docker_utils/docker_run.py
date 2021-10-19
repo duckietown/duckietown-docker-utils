@@ -42,11 +42,14 @@ __all__ = [
 
 
 def replace_important_env_vars(s: str) -> str:
+    if not isinstance(s, str):
+        raise TypeError(str(type(s)))
     for vname, vdefault in IMPORTANT_ENVS.items():
         vref = "${%s}" % vname
         if vref in s:
             value = os.environ.get(vname, vdefault)
             s = s.replace(vref, value)
+
     return s
 
 
