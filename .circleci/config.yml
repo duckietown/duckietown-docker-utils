@@ -24,7 +24,7 @@ jobs:
       COVER_PACKAGES: duckietown_docker_utils,duckietown_docker_utils_tests
       TEST_PACKAGES: duckietown_docker_utils_tests
     docker:
-    - image: $DOCKER_REGISTRY/circleci/python:3.8
+    - image: circleci/python:3.8
       auth:
         username: $DOCKER_USERNAME
         password: $DOCKER_PASSWORD
@@ -151,7 +151,7 @@ jobs:
       COVER_PACKAGES: duckietown_docker_utils,duckietown_docker_utils_tests
       TEST_PACKAGES: duckietown_docker_utils_tests
     docker:
-    - image: $DOCKER_REGISTRY/circleci/python:3.8
+    - image: circleci/python:3.8
       auth:
         username: $DOCKER_USERNAME
         password: $DOCKER_PASSWORD
