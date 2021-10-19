@@ -290,7 +290,7 @@ def generic_docker_run(
 
             #  {'Error': None, 'StatusCode': 32
             StatusCode = res["StatusCode"]
-            Error = res["Error"]
+            Error = res.get("Error", "n/a")
             if StatusCode and Error:
                 logger.error(f"StatusCode: {StatusCode} Error: {Error}")
             else:
