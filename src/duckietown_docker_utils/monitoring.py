@@ -87,7 +87,11 @@ def continuously_monitor(client, container_name: str, log: str = None):
                 building = b""
 
                 for c in container.logs(
-                    stdout=True, stderr=True, stream=True, follow=True, since=last_log_timestamp,
+                    stdout=True,
+                    stderr=True,
+                    stream=True,
+                    follow=True,
+                    since=last_log_timestamp,
                 ):
                     # XXX: not sure why this is needed
                     if isinstance(c, str):
