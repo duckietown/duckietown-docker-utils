@@ -25,7 +25,7 @@ install_requires = [
     "PyYAML",
 ]
 
-line = "daffy"
+line = "ente"
 
 setup(
     name=f"duckietown-docker-utils-{line}",
