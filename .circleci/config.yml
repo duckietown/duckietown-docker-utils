@@ -5,18 +5,18 @@ workflows:
   version: 2
   test:
     jobs:
-    - test-3.8-daffy-stage:
+    - test-3.8-ente-stage:
         context: pip-staging
         filters:
           branches:
-            only: /daffy-staging.*/
-    - test-3.8-daffy-prod:
+            only: /ente-staging.*/
+    - test-3.8-ente-prod:
         context: production
         filters:
           branches:
-            ignore: /daffy-staging.*/
+            ignore: /ente-staging.*/
 jobs:
-  test-3.8-daffy-stage:
+  test-3.8-ente-stage:
     environment:
       COLUMNS: '160'
       # default is /usr/local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
@@ -145,7 +145,7 @@ jobs:
         command: |
           bash <(curl -s https://codecov.io/bash)
     resource_class: medium
-  test-3.8-daffy-prod:
+  test-3.8-ente-prod:
     environment:
       COLUMNS: '160'
       # default is /usr/local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
