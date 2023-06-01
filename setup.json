@@ -15,7 +15,7 @@
   "modules": [
     "duckietown_docker_utils"
   ],
-  "version": "7.0.0",
+  "version": "7.0.1",
   "author": "",
   "author_email": "",
   "url": ""
